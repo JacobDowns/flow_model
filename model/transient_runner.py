@@ -31,6 +31,8 @@ class TransientRunner(CommonRunner):
         Hs = []
         # Integral of accumulation  through time
         Ps = []
+        # Integral of smb over time
+        adots = []
 
         for j in range(self.N):
             # Age
@@ -42,8 +44,9 @@ class TransientRunner(CommonRunner):
             L = self.model.step(precip_param, accept = True)
             Ls.append(L)
             Ps.append(assemble(self.model.precip_func*dx)*L)
+            adots.append(assemble(self.model.adot_prime_func*dx)*L)
 
             if j % self.snapshot_interval == 0:
                 Hs.append(self.model.H0.vector().get_local())
 
-        return np.array(ages), np.array(Ls), np.array(Hs), np.array(Ps)
+        return np.array(ages), np.array(Ls), np.array(Hs), np.array(Ps), np.array(adots)

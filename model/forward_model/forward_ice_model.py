@@ -22,7 +22,8 @@ class ForwardIceModel(object):
         # Max domain length
         self.domain_len = float(self.model_inputs.input_functions['domain_len'])
         # Model time
-        self.t = 0.0
+        self.t = float(self.model_inputs.input_functions['t0'])
+        
 
         #### Function spaces
         ########################################################################
@@ -70,7 +71,6 @@ class ForwardIceModel(object):
         # Split vector functions into scalar components
         ubar, udef, H_c, H, L = split(U)
         phibar, phidef, xsi_c, xsi, chi = split(Phi)
-
 
         # Values of model variables at previous time step
         un = Function(V_cg)
@@ -230,7 +230,8 @@ class ForwardIceModel(object):
                       'newton_solver': {
                        'relative_tolerance' : 5e-14,
                        'absolute_tolerance' : 9e-5,
-                       'linear_solver': 'mumps',
+                       'linear_solver': 'gmres',
+                       'preconditioner': 'ilu',
                        'maximum_iterations': 35,
                        'report' : False
                        }}
@@ -246,9 +247,6 @@ class ForwardIceModel(object):
         self.dt.assign(self.model_inputs.dt)
         # Iteration count
         self.i = 0
-        # Jumped flag
-        self.jumped = False
-        self.jump_count = 0
 
 
     # Assign input functions from model_inputs
@@ -262,16 +260,15 @@ class ForwardIceModel(object):
         self.precip_func.assign(self.model_inputs.precip_func)
 
 
-    def step(self, precip_param = 0.0, accept = False):
+    # Step the model forward
+    def step(self, precip_param = 0.0, accept = False, output = False):
         
-        ### Update length variable inputs
-        ####################################################################
+        # Update length variable inputs
         self.update_inputs(float(self.L0), precip_param)
 
         
         ### Solve
         ####################################################################
-        
         try:
             self.assigner.assign(self.U, [self.un, self.u2n, self.H0_c, self.H0, self.L0])
             solver = NonlinearVariationalSolver(self.problem)
@@ -299,38 +296,9 @@ class ForwardIceModel(object):
             self.i += 1
             self.assigner_inv.assign([self.un, self.u2n, self.H0_c, self.H0, self.L0], self.U)
 
-            
-            ### Avoid negative ice thicknesses by skipping the margin to very thin spots
-            ####################################################################
-
-            # Find locations where the ice is very thin
-            thin_indexes = np.where(self.H0_c.vector().get_local() < 15.)
-            # Find the inland most index
-            if len(thin_indexes[0]) > 0:
-                last_thin_index = thin_indexes[0][-1]
-
-                # Check if the last thin index is a ways inland of the margin
-                if last_thin_index > 0:
-                    self.jumped = False
-                    # In this case we set the terminus position to the thin spot
-                    chi_term = self.model_inputs.mesh_coords[::-1][last_thin_index]
-                    # New glacier length
-                    L_term = chi_term * float(self.L0)
-                    print("L jump from "+ str(float(self.L0)) + " to " + str(L_term))
-                    # Thickness needs to be reinterpolated
-                    xs = self.model_inputs.mesh_coords[::-1][last_thin_index:]
-                    Hcs = self.H0_c.vector().get_local()[last_thin_index:]
-                    Hs_interp = np.interp(self.model_inputs.mesh_coords*xs.max(), xs[::-1], Hcs[::-1])
-                    Hs_interp[-1] = 15.
-                    # Set the new domain length
-                    self.L0.assign(Constant(L_term))
-                    # Set the new ice thickness
-                    self.H0_c.vector()[:] = np.ascontiguousarray(Hs_interp[::-1])
-                    self.H0.assign(project(self.H0_c, self.V_dg))
-                    self.update_inputs(L_term, precip_param)
-                    self.update_inputs(L_term, precip_param)
-
-            print("real step: ", self.t, self.H0_c.vector().max(), self.H0_c.vector().get_local()[0], float(self.L0))
+            if output:
+                print("real step: ", self.t, self.H0_c.vector().max(), self.H0_c.vector().get_local()[0], float(self.L0))
+                
             return float(self.L0)
         else :
             return float(self.L0_temp)
@@ -339,26 +307,13 @@ class ForwardIceModel(object):
         return float(self.L0)
 
 
-    # Write out a steady state file
-    def write_steady_file(self, output_file_name):
-      output_file = HDF5File(mpi_comm_world(), output_file_name + '.h5', 'w')
-
-      ### Write bed data
-      output_file.write(self.model_inputs.original_cg_functions['B'], 'B')
-      output_file.write(self.model_inputs.original_cg_functions['width'], 'width')
-      output_file.write(self.model_inputs.original_cg_functions['beta2'], 'beta2')
-      output_file.write(self.model_inputs.input_functions['domain_len'], 'domain_len')
-
-      ### Write variables
-      output_file.write(self.mesh, "mesh")
-      output_file.write(self.H0, "H0")
-      output_file.write(self.H0_c, "H0_c")
-      output_file.write(self.L0, "L0")
-      output_file.write(self.boundaries, "boundaries")
-      output_file.write(self.adot_prime_func, "adot_prime_func")
-      output_file.flush()
-
-      for field in self.model_inputs.additional_cg_fields:
-          output_file.write(self.model_inputs.original_cg_functions[field], field)
-
-      output_file.close()
+    # Write the ice sheet model state to a file
+    def write_state(self, output_file_name):
+        
+        output_file = HDF5File(mpi_comm_world(), output_file_name + '.h5', 'w')
+        output_file.write(self.H0, "H0")
+        output_file.write(self.H0_c, "H0_c")
+        output_file.write(self.L0, "L0")
+        output_file.write(interpolate(Constant(self.t), self.V_r), "t0")
+        output_file.flush()
+        output_file.close()

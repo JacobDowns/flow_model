@@ -9,7 +9,7 @@ Flexible class for generating a forward model inputs file.
 
 class CommonInputs(object):
 
-    def __init__(self, input_file_name, input_options = {}):
+    def __init__(self, input_file_name, input_options = {}, state_file_name = None):
 
         # Dictionary of extra input options
         self.input_options = input_options
@@ -47,7 +47,7 @@ class CommonInputs(object):
             self.interp_fields = set(self.cg_fields).intersection(set(input_options['interp_fields']))
         else :
             # Default CG fields
-            self.cg_fields = ['H0_c', 'B', 'width', 'beta2']
+            self.cg_fields = ['B', 'width', 'beta2']
 
             # Any additional fields
             if 'additional_cg_fields' in input_options:
@@ -79,7 +79,7 @@ class CommonInputs(object):
             self.dg_fields = input_options['dg_fields']
         else :
             # Default DG fields
-            self.dg_fields = ['H0']
+            self.dg_fields = []
             # Any additional fields
             if 'additional_dg_fields' in input_options:
                 self.dg_fields += self.dg_fields['additional_dg_fields']
@@ -99,7 +99,7 @@ class CommonInputs(object):
             self.r_fields = self.r_fields.union(set(input_options['r_fields']))
         else :
             # Default DG fields
-            self.r_fields = ['L0', 'domain_len']
+            self.r_fields = ['domain_len']
             # Any additional fields
             if 'additional_r_fields' in input_options:
                 self.r_fields += self.dg_fields['additional_r_fields']
@@ -113,6 +113,30 @@ class CommonInputs(object):
         self.domain_len = float(self.input_functions['domain_len'])
 
 
+        ### State variables
+        ########################################################################
+        
+        if state_file_name:
+            state_input_file = HDF5File(self.mesh.mpi_comm(), state_file_name, "r")
+            self.state_input_file = state_input_file
+
+            # CG thickness
+            self.input_functions['H0_c'] = Function(self.V_cg)
+            state_input_file.read(self.input_functions['H0_c'], 'H0_c')
+
+            # DG thickness
+            self.input_functions['H0'] = Function(self.V_dg)
+            state_input_file.read(self.input_functions['H0'], 'H0')
+
+            # Initial length
+            self.input_functions['L0'] = Function(self.V_r)
+            state_input_file.read(self.input_functions['L0'], 'L0')
+
+            # Initial time
+            self.input_functions['t0'] = Function(self.V_r)
+            state_input_file.read(self.input_functions['t0'], 't0')
+            
+        
         ### Create interpolated CG fields
         ########################################################################
 

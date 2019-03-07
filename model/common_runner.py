@@ -68,7 +68,12 @@ class CommonRunner(object):
         self.start_age = -11554.
         if 'start_age' in input_dict:
             self.start_age = input_dict['start_age']
-            
+
+        # State file name
+        self.state_file_name = None
+        if 'state_file_name' in input_dict:
+            self.state_file_name = input_dict['state_file_name']
+        
         
         ### Init. model
         ############################################################################
@@ -82,6 +87,7 @@ class CommonRunner(object):
         inputs['lambda_precip'] = self.lambda_precip
         inputs['beta2'] = self.beta2
         inputs['start_age'] = self.start_age
+        inputs['state_file_name'] = self.state_file_name
 
         # Create model inputs
         self.model_inputs = PaleoInputs(self.in_file, inputs)
