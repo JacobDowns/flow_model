@@ -30,7 +30,7 @@ class PriorWriter(object):
             plt.plot(samples[i])
         plt.show()
         
-        
+         
         ### Compute a minimal set of sigma points
         ##############################################
 
@@ -38,13 +38,12 @@ class PriorWriter(object):
         X, wm, wc = points.get_set(set_type, inputs['kappa'])
 
 
-        """
         for i in range(len(X)):
             x_i = X[i]
-            plt.plot(x_i[0:4], marker = 'o')
+            plt.plot(x_i[0:3], marker = 'o')
 
         plt.show()
-        """
+
 
         branches = [[ np.array([v]) for v in np.unique(X[:,0]) ]]
 
@@ -53,13 +52,13 @@ class PriorWriter(object):
     
         for i in range(1,X.shape[1]):
             x = len(np.unique(X[:, 0:i], axis = 0))
-            print(x)
+            #print(x)
             branches.append(x)
 
 
-        plt.plot(branches)
-        plt.show()
-        quit()
+        #plt.plot(branches)
+        #plt.show()
+        #quit()
 
         branches = np.array(branches)
         print()
