@@ -29,10 +29,13 @@ class TransientRunner(CommonRunner):
         ages = []
         # Thickness vectors through time
         Hs = []
+        # Bed
+        Bs = []
         # Integral of accumulation  through time
         Ps = []
         # Integral of smb over time
         adots = []
+        
 
         for j in range(self.N):
             # Age
@@ -47,6 +50,7 @@ class TransientRunner(CommonRunner):
             adots.append(assemble(self.model.adot_prime_func*dx)*L)
 
             if j % self.snapshot_interval == 0:
-                Hs.append(self.model.H0.vector().get_local())
+                Hs.append(self.model.H0_c.vector().get_local())
+                Bs.append(self.model.B.vector().get_local())
 
-        return np.array(ages), np.array(Ls), np.array(Hs), np.array(Ps), np.array(adots)
+        return np.array(ages), np.array(Ls), np.array(Hs), np.array(Bs), np.array(Ps), np.array(adots)

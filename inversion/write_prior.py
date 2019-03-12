@@ -22,6 +22,6 @@ inputs['Pxx'] = np.linalg.inv(Q)
 # Sigma set type
 inputs['set_type'] = 'fifth_order'
 # The first weight for tuning
-inputs['kappa'] = 3..
+inputs['kappa'] = 3.
 
 pw = PriorWriter(inputs)

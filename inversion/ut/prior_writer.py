@@ -45,6 +45,7 @@ class PriorWriter(object):
         plt.show()
 
 
+        """
         branches = [[ np.array([v]) for v in np.unique(X[:,0]) ]]
 
 
@@ -66,7 +67,8 @@ class PriorWriter(object):
         print(branches)
         print(X.shape)
         print(branches.sum() / (X.shape[0]*X.shape[1]))
-        quit()
+        #quit()
+        """
     
         #print(X)
         #quit()
