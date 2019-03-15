@@ -1,5 +1,10 @@
 import numpy as np
 
+"""
+This object generates sigma points and weight sets given a prior
+mean x and covariance matrix Pxx.
+"""
+
 class SigmaPoints(object):
 
     def __init__(self, x, Pxx):
@@ -48,8 +53,6 @@ class SigmaPoints(object):
         
         return X, w, w
         
-
-
         
     # Return a Gauss set with 2n + 1 points
     def __get_set_gauss__(self, kappa):

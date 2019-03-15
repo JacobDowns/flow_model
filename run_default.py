@@ -15,6 +15,8 @@ inputs['state_file_name'] = 'input_files/south_buizert/state0.h5'
 inputs['dt'] = 1./3.
 # Return ice thickness every 10 years
 inputs['snapshot_interval'] = 15*3
+# Basal traction
+inputs['beta2'] = 1.6e-3
 
 
 ### Delta P
@@ -25,7 +27,7 @@ precip_param_opt = np.loadtxt('paleo_data/south_buizert/opt_m.txt')
 # Interpolated delta temp. function 
 inputs['precip_param_func'] = interp1d(sigma_ts, precip_param_opt, kind = 'linear')
 # Number of model time steps
-inputs['N'] = 8000*3 
+inputs['N'] = 5000*3 
 # Start age
 inputs['start_age'] = sigma_ts[0]
 
