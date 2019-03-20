@@ -1,0 +1,6 @@
+2
+Input Dictionary
+{'state_file_name': 'output_files/inversions/covariance_comparison1/state0.h5', 'lambda_snow': 0.005, 'start_age': -11554.0, 'beta2': None, 'dt': 0.3333333333333333, 'lambda_ice': 0.008, 'lambda_precip': 0.07, 'pdd_var': 5.5}
+()
+Constants Dictionary
+{'spy': 31536000, 'b': 449133.1553956307, 'A_s': Coefficient(FunctionSpace(None, FiniteElement('Real', None, 0)), 1), 'g': 9.81, 'sea_level': -10000.0, 'm': 3.0, 'P_frac': 0.85, 'n': 3.0, 'mu': Coefficient(FunctionSpace(None, FiniteElement('Real', None, 0)), 0), 'rho_w': 1029.0, 'rho': 917.0, 'thklim': 1.0}

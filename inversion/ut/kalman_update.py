@@ -27,7 +27,9 @@ class KalmanUpdate(object):
         self.w_m = np.loadtxt(self.in_dir + '/prior/w_m.txt')
         # Load covariance weights
         self.w_c = np.loadtxt(self.in_dir + '/prior/w_c.txt')
-        
+
+        #print(self.model_ages)
+        #quit()
 
         ### Use a specially built measurement mean and covariance matrix
         #############################################################
@@ -43,14 +45,9 @@ class KalmanUpdate(object):
         self.meas_indexes = list(range(0, len(self.model_ages), dt*3))
         # Restrict transformed sigma points
         self.Y = self.Y[:,self.meas_indexes]
-
-        print(len(self.model_ages))
-        print(self.Y.shape)
-        quit()
-        print(self.y.shape)
-        print(self.Y.shape)
-        print(self.Pyy.shape)
-        quit()
+        # Restrict the measurement
+        self.y = self.y[0:len(self.meas_indexes)]
+        self.Pyy = self.Pyy[0:len(self.meas_indexes), 0:len(self.meas_indexes)]
 
 
     ### Build the joint distribution
@@ -65,11 +62,7 @@ class KalmanUpdate(object):
             print(i)
             S += self.w_c[i]*np.outer(self.Y[i] - mu, self.Y[i] - mu)
 
-        print(S.shape)
-        print(self.Pyy.shape)
-        quit()
         S += self.Pyy
-        
         
         # Compute predicted measurement covariance
         C = np.zeros((self.X.shape[1], self.Y.shape[1]))
@@ -91,9 +84,9 @@ class KalmanUpdate(object):
         
         x_full, P_full = self.get_joint_dist()
         # Length of state variable             
-        n1 = len(x_full) - len(y)
+        n1 = len(x_full) - len(self.y)
         # Length of measurement vector
-        n2 = len(y)
+        n2 = len(self.y)
         # State mean
         x = x_full[0:n1]
         # Measurement mean
@@ -101,16 +94,26 @@ class KalmanUpdate(object):
         # State prior
         P = P_full[0:n1, 0:n1]
         # Measurement covariance
-        S = P_full[n2:, n2:]
+        S = P_full[n1:, n1:]
         # Cross covariance 
-        C = P_full[n1:, 0:n2]
+        C = P_full[n1:, 0:n1]
 
         ### Do the Kalman update
         ######################################################################
         
-        K = np.dot(C, np.linalg.inv(S))
-        x_new = x + np.dot(K, y - mu)
+        K = np.dot(C.T, np.linalg.inv(S))
+        x_new = x + np.dot(K, self.y - mu)
         Pxx_new = P - np.dot(np.dot(K, S), K.T)
+
+        #kappa = 9 - n
+        #print(kappa)
+        #quit()
+        v = np.sqrt(np.diag(Pxx_new))
+        plt.plot(x_new - 2.*v)
+        plt.plot(x_new)
+        plt.plot(x_new + 2.*v)
+        plt.show()
+        quit()
 
         return x_new, Pxx_new, mu
 
@@ -122,7 +125,7 @@ class KalmanUpdate(object):
         #############################################################
 
         self.get_conditional_dist()
-        quit()
+    
         
         if out_dir:
             np.savetxt(out_dir + 'mu.txt', mu)

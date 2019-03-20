@@ -1,6 +1,7 @@
 import numpy as np
 from ut.sigma_points import SigmaPoints
 import matplotlib.pyplot as plt
+import os
 
 class PriorWriter(object):
 

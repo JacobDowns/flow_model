@@ -7,7 +7,7 @@ import seaborn as sns
 import matplotlib
 
 current_palette =  sns.color_palette()
-matplotlib.rcParams.update({'font.size': 15})
+matplotlib.rcParams.update({'font.size': 22})
 
 age = np.loadtxt('output_files/south_buizert/age.txt')
 adot = np.loadtxt('output_files/south_buizert/adot.txt')
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     # animating over 10 frames, with an interval of 200ms between frames.
     anim = FuncAnimation(fig, update, frames=np.arange(0, H.shape[0]), interval=200)
     if len(sys.argv) > 1 and sys.argv[1] == 'save':
-        anim.save('example.gif', dpi=120, writer='imagemagick')
+        anim.save('example.gif', dpi=100, writer='imagemagick')
     else:
         # plt.show() will just loop the animation forever.
         plt.show()

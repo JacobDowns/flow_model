@@ -21,8 +21,8 @@ Q = delta*np.asarray(poisson((N,)).todense())
 # Prior covariance
 inputs['Pxx'] = np.linalg.inv(Q)[0:n, 0:n]
 # Sigma set type
-inputs['set_type'] = 'fifth_order'
+inputs['set_type'] = 'min'
 # The first weight for tuning
-inputs['kappa'] = 2.
+inputs['kappa'] = 0.5
 
 pw = PriorWriter(inputs)
