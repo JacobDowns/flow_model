@@ -104,17 +104,7 @@ class KalmanUpdate(object):
         K = np.dot(C.T, np.linalg.inv(S))
         x_new = x + np.dot(K, self.y - mu)
         Pxx_new = P - np.dot(np.dot(K, S), K.T)
-
-        #kappa = 9 - n
-        #print(kappa)
-        #quit()
-        v = np.sqrt(np.diag(Pxx_new))
-        plt.plot(x_new - 2.*v)
-        plt.plot(x_new)
-        plt.plot(x_new + 2.*v)
-        plt.show()
-        quit()
-
+      
         return x_new, Pxx_new, mu
 
 
@@ -124,22 +114,19 @@ class KalmanUpdate(object):
         ### Do the Kalman update
         #############################################################
 
-        self.get_conditional_dist()
-    
+        x_new, Pxx_new, mu = self.get_conditional_dist()  
         
         if out_dir:
             np.savetxt(out_dir + 'mu.txt', mu)
-            np.savetxt(out_dir + 'opt_m.txt', m_p)
-            np.savetxt(out_dir + 'opt_P.txt', P_p)
-            np.savetxt(out_dir + 'y.txt', self.meas_y)
-            np.savetxt(out_dir + 'Py.txt', self.meas_Py)
-            np.savetxt(out_dir + 'v.txt', v)
-            np.savetxt(out_dir + 'y_v.txt', y_v)
+            np.savetxt(out_dir + 'x_new.txt', x_new)
+            np.savetxt(out_dir + 'Pxx_new.txt', Pxx_new)
+            np.savetxt(out_dir + 'y.txt', self.y)
+            np.savetxt(out_dir + 'Py.txt', self.Pyy)
 
-            plt.plot(m_p)
-            plt.plot(m_p + 2.0*np.sqrt(v))
-            plt.plot(m_p - 2.0*np.sqrt(v))
+            v = np.sqrt(np.diag(Pxx_new))
+
+            plt.plot(x_new)
+            plt.plot(x_new + 2.0*v)
+            plt.plot(x_new - 2.0*v)
             plt.show()
-
-        return m_p, P_p, mu, K, self.meas_y, self.meas_Py
         

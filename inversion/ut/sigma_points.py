@@ -154,6 +154,41 @@ class SigmaPoints(object):
         return X.T, w, w
 
 
+    def __get_mysovskikh_set__(self, kappa):
+
+        n = self.n
+
+        
+        ### First set
+        ########################################
+        
+        I = (np.arange(n)[:,None] + 1).repeat(n + 1, axis = 1).T
+        R = (np.arange(n + 1) + 1)[:,None].repeat(n, axis = 1)
+        A = -np.sqrt((n+1.) / (n*(n-I+2.)*(n-I+1.)))
+        indexes = (I == R)
+        A[indexes] = np.sqrt( ((n+1.)*(n-R[indexes]+1.)) / (5.*(n-R[indexes]+2.)))
+        indexes = I > R
+        A[indexes] = 0.
+        
+
+        ### Second set
+        ########################################
+        ls = np.arange(n+1)[:,None].repeat(n+1)
+        ks = (np.arange(n+1)[:,None].repeat(n+1, axis = 1).T).flatten() 
+        indexes = ks < ls
+        B = np.sqrt(n / (2.*(n-1.)))*(A[ks[indexes]] + A[ls[indexes]])
+        X = np.sqrt(n/2. + 1.)*np.block([[np.zeros(n)], [A], [-A], [B], [-B]])
+
+        w0 = 2./(n+2.)
+        w1 = (n**2 * (7. - n)) / (2.*(n + 1.)**2 * (n+2.)**2)
+        w2 = (2.*(n-1.)**2) / ((n+1.)**2 * (n+2.)**2)
+        w = np.block([w0, np.repeat(w1, 2*len(A)), np.repeat(w2, 2*len(B))])
+
+        
+        return X, w, w
+        #print(X)
+
+
     # Just take random draws from the distribution (for testing)
     def __get_set_random__(self, num_draws):
         samples = np.random.multivariate_normal(self.x, self.Pxx, num_draws)
