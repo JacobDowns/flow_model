@@ -10,19 +10,21 @@ inputs['out_dir'] = sys.argv[1]
 # Sigma point times
 N = 44
 # For shorter inversions
-n = 24
+n1 = 4
+n2 = 22
 sigma_ts = np.linspace(-11554., 0., N)
-inputs['sigma_ts'] = sigma_ts[0:n]
+
+inputs['sigma_ts'] = sigma_ts[n1:n2]
 # Prior mean 
-inputs['x'] = np.loadtxt('paleo_data/south_buizert/opt_m.txt')[0:n]
+inputs['x'] = np.loadtxt('paleo_data/south_buizert/opt_m.txt')[n1:n2]
 # Prior precision matrix
 delta = 7.5e3
 Q = delta*np.asarray(poisson((N,)).todense())
 # Prior covariance
-inputs['Pxx'] = np.linalg.inv(Q)[0:n, 0:n]
+inputs['Pxx'] = np.linalg.inv(Q)[n1:n2, n1:n2]
 # Sigma set type
 inputs['set_type'] = 'fifth_order'
 # The first weight for tuning
-inputs['kappa'] = 1.
+inputs['kappa'] = 0.9
 
 pw = PriorWriter(inputs)

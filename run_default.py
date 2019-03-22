@@ -27,7 +27,7 @@ precip_param_opt = np.loadtxt('paleo_data/south_buizert/opt_m.txt')
 # Interpolated delta temp. function 
 inputs['precip_param_func'] = interp1d(sigma_ts, precip_param_opt, kind = 'linear')
 # Number of model time steps
-inputs['N'] = 5000*3 
+inputs['N'] = 1075*3 
 # Start age
 inputs['start_age'] = sigma_ts[0]
 
@@ -36,11 +36,4 @@ inputs['start_age'] = sigma_ts[0]
 #######################################################
 tr = TransientRunner(inputs)
 ages, Ls, Hs, Bs, Ps, adots = tr.run()
-
-out_dir = 'output_files/south_buizert/'
-np.savetxt(out_dir + 'age.txt', ages)
-np.savetxt(out_dir + 'L.txt', Ls)
-np.savetxt(out_dir + 'H.txt', Hs)
-np.savetxt(out_dir + 'B.txt', Bs)
-np.savetxt(out_dir + 'P.txt', Ps)
-np.savetxt(out_dir + 'adot.txt', adots)
+tr.model.write_state('input_files/south_buizert/state1')

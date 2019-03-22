@@ -14,7 +14,7 @@ index = int(sys.argv[2]) - 1
 sigma_points = np.loadtxt(in_dir + 'prior/X.txt')
 num_sigma_points = sigma_points.shape[0]
 # Load sigma times
-sigma_ts = np.loadtxt(in_dir + 'prior/sigma_ts.txt')
+sigma_ts = np.array(np.loadtxt(in_dir + 'prior/sigma_ts.txt'), dtype = int)
 # Model input file
 input_file = in_dir + 'flowline.h5'
 state_file = in_dir + 'state0.h5'

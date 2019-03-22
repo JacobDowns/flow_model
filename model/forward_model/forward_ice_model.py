@@ -303,7 +303,6 @@ class ForwardIceModel(object):
         else :
             return float(self.L0_temp)
 
-
         return float(self.L0)
 
 

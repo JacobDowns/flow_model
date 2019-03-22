@@ -1,13 +1,17 @@
 import numpy as np
 from sigma_points import *
+import matplotlib.pyplot as plt
 
-N = 5
+N = 10
 x = np.zeros(N)
 Pxx = np.eye(N)
 
 points = SigmaPoints(x, Pxx)
 X, w, w = points.__get_mysovskikh_set__(1.)
 print(w.sum())
+
+quit()
+print(X)
 
 
 def m(indexes, powers):
@@ -20,7 +24,13 @@ def m(indexes, powers):
     return m@w
     #print(m)
 
-print(4.*m([0,4], [2,2]))
+for i in range(len(X)):
+    plt.plot(X[i])
+    print(np.linalg.norm(X[i]))
+    print(np.sqrt(N + 2.))
+plt.show()
+
+#print(m([1], [2]))
 quit()
 
 def partition(number):
