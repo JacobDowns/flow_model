@@ -28,8 +28,6 @@ class KalmanUpdate(object):
         # Load covariance weights
         self.w_c = np.loadtxt(self.in_dir + '/prior/w_c.txt')
 
-        #print(self.model_ages)
-        #quit()
 
         ### Use a specially built measurement mean and covariance matrix
         #############################################################
@@ -40,14 +38,14 @@ class KalmanUpdate(object):
         self.y = input_dict['y']
         dt = int(self.y_ages[1] - self.y_ages[0])
         # Measurement covariance
-        self.Pyy = input_dict['Pyy']
-        # Measurement indexes
-        self.meas_indexes = list(range(0, len(self.model_ages), dt*3))
-        # Restrict transformed sigma points
-        self.Y = self.Y[:,self.meas_indexes]
-        # Restrict the measurement
-        self.y = self.y[0:len(self.meas_indexes)]
-        self.Pyy = self.Pyy[0:len(self.meas_indexes), 0:len(self.meas_indexes)]
+        self.y = interp1d(input_dict['y_ages'], input_dict['y'])(self.model_ages)
+        self.Pyy = np.diag(interp1d(input_dict['y_ages'], np.diag(input_dict['Pyy']))(self.model_ages))
+        # Restrict
+        self.y = interp1d(input_dict['y_ages'], input_dict['y'])(self.model_ages)[::3*25]
+        self.Pyy = np.diag(interp1d(input_dict['y_ages'], np.diag(input_dict['Pyy']))(self.model_ages))[::3*25,::3*25]
+        self.Y = self.Y[:,::3*25]
+
+        
 
 
     ### Build the joint distribution
@@ -55,6 +53,10 @@ class KalmanUpdate(object):
         
         # Compute predicted mean
         mu = np.dot(self.w_m, self.Y)
+
+        plt.plot(mu)
+        plt.show()
+        #quit()
 
         # Compute predicted measurement covariance
         S = np.zeros((self.Y.shape[1], self.Y.shape[1]))

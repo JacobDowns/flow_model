@@ -151,6 +151,7 @@ class SigmaPoints(object):
         # Change variables
         X = x[:,None].repeat(2*N**2 + 1, axis = 1) + self.Pxx_sqrt@X
 
+        print(w.min(), w.max())
         return X.T, w, w
 
 

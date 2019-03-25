@@ -31,7 +31,7 @@ inputs['state_file_name'] = state_file
 # Time step
 inputs['dt'] = 1./3.
 # Number of model time steps
-inputs['N'] = int(abs(sigma_ts.max() - sigma_ts.min()))*3
+inputs['N'] = abs(sigma_ts.max() - sigma_ts.min())*3
 
 
 ### Run a sigma point
@@ -44,7 +44,8 @@ if not os.path.isfile(in_dir + 'sigmas/Y_' + str(index) + '.txt'):
     # Interpolated delta temp
     X_i = sigma_points[index]
     inputs['precip_param_func'] = interp1d(sigma_ts, X_i, kind = 'linear')
-    inputs['start_age'] = sigma_ts[0]
+    #inputs['start_age'] = sigma_ts[0]
+    
 
     ### Perform model run 
     #######################################################

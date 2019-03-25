@@ -9,20 +9,21 @@ import matplotlib
 current_palette =  sns.color_palette()
 matplotlib.rcParams.update({'font.size': 22})
 
-x1 = np.loadtxt('output_files/inversions/covariance_comparison/posterior/x_new.txt')
-x2 = np.loadtxt('output_files/inversions/covariance_comparison1/posterior/x_new.txt')
-P1 = np.loadtxt('output_files/inversions/covariance_comparison/posterior/Pxx_new.txt')
-P2 = np.loadtxt('output_files/inversions/covariance_comparison1/posterior/Pxx_new.txt')
+ts = np.loadtxt('output_files/inversions/htm_covariance/prior/sigma_ts.txt')
+x1 = np.loadtxt('output_files/inversions/htm_covariance/posterior/x_new.txt')
+x2 = np.loadtxt('output_files/inversions/htm_covariance1/posterior/x_new.txt')
+P1 = np.loadtxt('output_files/inversions/htm_covariance/posterior/Pxx_new.txt')
+P2 = np.loadtxt('output_files/inversions/htm_covariance1/posterior/Pxx_new.txt')
 v1 = np.sqrt(np.diag(P1))
 v2 = np.sqrt(np.diag(P2))
 
-plt.plot(x1 - 2.0*v1, 'b')
-plt.plot(x1, 'b')
-plt.plot(x1 + 2.0*v1, 'b')
+plt.plot(ts, x1 - 2.0*v1, 'b')
+plt.plot(ts, x1, 'b')
+plt.plot(ts, x1 + 2.0*v1, 'b')
 
-plt.plot(x2 - 2.0*v2, 'r')
-plt.plot(x2, 'r')
-plt.plot(x2 + 2.0*v2, 'r')
+plt.plot(ts, x2 - 2.0*v2, 'r')
+plt.plot(ts, x2, 'r')
+plt.plot(ts, x2 + 2.0*v2, 'r')
 
 
 

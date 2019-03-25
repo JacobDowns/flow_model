@@ -19,6 +19,13 @@ class PriorWriter(object):
         Pxx = inputs['Pxx']
         # Sigma set type
         set_type = inputs['set_type']
+        # Parameter names
+        if 'param_names' in inputs:
+            param_names = inputs['param_names']
+            # Parameter mean vector
+            u = inputs['u']
+            # Param covariance
+            Puu = inputs['Puu']
 
         
         ### Plot samples from prior
@@ -58,5 +65,10 @@ class PriorWriter(object):
         np.savetxt(out_dir + '/prior/w_m.txt', wm)
         np.savetxt(out_dir + '/prior/w_c.txt', wc)
         np.savetxt(out_dir + '/prior/X.txt', X)
+
+        if 'param_names' in inputs:
+            np.savetxt(out_dir + '/prior/param_names.txt', param_names)
+            np.savetxt(out_dir + '/prior/u.txt', u)
+            np.savetxt(out_dir + '/prior/Puu.txt', Puu)
 
         

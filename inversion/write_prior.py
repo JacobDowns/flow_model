@@ -13,8 +13,9 @@ N = 44
 n1 = 4
 n2 = 22
 sigma_ts = np.linspace(-11554., 0., N)
-
 inputs['sigma_ts'] = sigma_ts[n1:n2]
+print(inputs['sigma_ts'])
+#quit()
 # Prior mean 
 inputs['x'] = np.loadtxt('paleo_data/south_buizert/opt_m.txt')[n1:n2]
 # Prior precision matrix
@@ -25,6 +26,8 @@ inputs['Pxx'] = np.linalg.inv(Q)[n1:n2, n1:n2]
 # Sigma set type
 inputs['set_type'] = 'fifth_order'
 # The first weight for tuning
-inputs['kappa'] = 0.9
+inputs['kappa'] = 2.8
+
+
 
 pw = PriorWriter(inputs)
