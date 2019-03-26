@@ -42,3 +42,19 @@ if flowline == 'htm_covariance1':
     inputs['Pyy'] = 1.*np.loadtxt('paleo_data/measurements/Py_s.txt')
     ku = KalmanUpdate(inputs)
     ku.optimize('output_files/inversions/htm_covariance1/posterior/')
+
+if flowline == 'cov1':
+    inputs['in_dir'] = 'output_files/inversions/cov1'
+    inputs['y_ages'] = np.loadtxt('paleo_data/measurements/y_ages.txt')
+    inputs['y'] = np.loadtxt('paleo_data/measurements/y_s.txt')
+    inputs['Pyy'] = 1.*np.loadtxt('paleo_data/measurements/Py_s.txt')
+    ku = KalmanUpdate(inputs)
+    ku.optimize('output_files/inversions/cov1/posterior/')
+
+if flowline == 'cov2':
+    inputs['in_dir'] = 'output_files/inversions/cov2'
+    inputs['y_ages'] = np.loadtxt('paleo_data/measurements/y_ages.txt')
+    inputs['y'] = np.loadtxt('paleo_data/measurements/y_s.txt')
+    inputs['Pyy'] = 1.*np.loadtxt('paleo_data/measurements/Py_s.txt')
+    ku = KalmanUpdate(inputs)
+    ku.optimize('output_files/inversions/cov2/posterior/')
