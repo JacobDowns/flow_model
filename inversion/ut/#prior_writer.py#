@@ -27,7 +27,7 @@ class PriorWriter(object):
             u = inputs['u']
             # Param covariance
             Puu = inputs['Puu']
-            # Augmented state and covariance
+            #  
             x = np.block([x, u])
             Pxx = block_diag(Pxx, Puu)
             
@@ -37,11 +37,11 @@ class PriorWriter(object):
         ### Plot samples from prior
         ##########################################################################
 
-        #samples = np.random.multivariate_normal(x, Pxx, 100)
+        samples = np.random.multivariate_normal(x, Pxx, 100)
 
-        #for i in range(100):
-        #    plt.plot(samples[i])
-        #plt.show()
+        for i in range(100):
+            plt.plot(samples[i])
+        plt.show()
         
          
         ### Get a set of sigma points
@@ -50,17 +50,13 @@ class PriorWriter(object):
         points = SigmaPoints(x, Pxx)
         X, wm, wc = points.get_set(set_type, inputs['kappa'])
 
-        if 'param_names' in inputs:
-            # Plot the sigma points
-            for i in range(len(X)):
-                x_i = X[i,:-len(u)]
-                plt.plot(x_i, marker = 'o')
-                print(X[i,-len(u):])
+        # Plot the sigma points
+        for i in range(len(X)):
+            x_i = X[i]
+            plt.plot(x_i, marker = 'o')
 
+        plt.show()
 
-        print()
-        print(np.unique(X[:,-len(u):], axis = 0))
-        quit()
 
         ### Write the prior info to a file
         ####################################################
