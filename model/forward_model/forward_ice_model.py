@@ -307,12 +307,14 @@ class ForwardIceModel(object):
 
 
     # Write the ice sheet model state to a file
-    def write_state(self, output_file_name):
+    def write_state(self, output_file_name, t0 = None):
         
         output_file = HDF5File(mpi_comm_world(), output_file_name + '.h5', 'w')
         output_file.write(self.H0, "H0")
         output_file.write(self.H0_c, "H0_c")
         output_file.write(self.L0, "L0")
-        output_file.write(interpolate(Constant(self.t), self.V_r), "t0")
+        if not t0:
+            t0 = self.t
+        output_file.write(interpolate(Constant(t0), self.V_r), "t0")
         output_file.flush()
         output_file.close()

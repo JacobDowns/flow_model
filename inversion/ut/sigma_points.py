@@ -74,7 +74,7 @@ class SigmaPoints(object):
         # Mean / covariance weights
         w = np.ones(N) / (2.*kappa)
         w[0] = w_0
-        
+
         return X, w, w
         
 
@@ -151,7 +151,7 @@ class SigmaPoints(object):
         # Change variables
         X = x[:,None].repeat(2*N**2 + 1, axis = 1) + self.Pxx_sqrt@X
 
-        print(w.min(), w.max())
+        #print(abs(w.min()) / abs(w.max()))
         return X.T, w, w
 
 

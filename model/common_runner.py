@@ -95,11 +95,14 @@ class CommonRunner(object):
         
         ### Set constants
         ############################################################################
-        
-        # Ice hardness
-        if 'b' in input_dict:
-            self.model_inputs.physical_constants['b'] = input_dict['b']
-            
+
+        # Log of the rate factor 
+        if 'log_A' in input_dict:
+            A = np.exp(input_dict['log_A'])
+            b = (A * self.model_inputs.physical_constants['spy'])**(-1./self.model_inputs.physical_constants['n'])
+            print(A, b)
+            self.model_inputs.physical_constants['b'] = b
+
         # Overburden pressure fraction
         if 'P_frac' in input_dict:
             self.model_inputs.physical_constants['P_frac'] = input_dict['P_frac']

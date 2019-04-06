@@ -127,8 +127,10 @@ class KalmanUpdate(object):
 
             v = np.sqrt(np.diag(Pxx_new))
 
-            plt.plot(x_new)
-            plt.plot(x_new + 2.0*v)
-            plt.plot(x_new - 2.0*v)
+            print(x_new[18:])
+
+            plt.plot(x_new[0:18])
+            plt.plot((x_new + 2.0*v)[0:18])
+            plt.plot((x_new - 2.0*v)[0:18])
             plt.show()
         

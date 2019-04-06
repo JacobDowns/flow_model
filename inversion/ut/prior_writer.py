@@ -32,8 +32,6 @@ class PriorWriter(object):
             Pxx = block_diag(Pxx, Puu)
             
             
-        
-            
         ### Plot samples from prior
         ##########################################################################
 
@@ -57,11 +55,9 @@ class PriorWriter(object):
                 plt.plot(x_i, marker = 'o')
                 print(X[i,-len(u):])
 
-
-        print()
-        print(np.unique(X[:,-len(u):], axis = 0))
-        quit()
-
+            L_steady = inputs['L_steady']
+        plt.show()
+                
         ### Write the prior info to a file
         ####################################################
 
@@ -77,8 +73,9 @@ class PriorWriter(object):
         np.savetxt(out_dir + '/prior/X.txt', X)
 
         if 'param_names' in inputs:
-            np.savetxt(out_dir + '/prior/param_names.txt', param_names)
+            np.savetxt(out_dir + '/prior/param_names.txt', param_names, fmt = '%s')
             np.savetxt(out_dir + '/prior/u.txt', u)
             np.savetxt(out_dir + '/prior/Puu.txt', Puu)
+            np.savetxt(out_dir + '/prior/L_steady.txt', L_steady)
 
         

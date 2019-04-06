@@ -1,6 +1,6 @@
 from model.common_runner import *
 import numpy as np
-from inversion.kf.scalar_ukf import *
+from scalar_ukf import *
 import sys
 import matplotlib.pyplot as plt
 sys.path.append('../')
@@ -28,7 +28,7 @@ class SteadyRunner(CommonRunner):
             self.precip_param_sigma2 = input_dict['precip_param_sigma2']
 
         # Observation mean
-        self.L_mu = input_dict['L_mu']
+        self.L_mu = input_dict['L_steady']
         
         # Observation covariance
         self.L_sigma2 = 100.**2
@@ -42,6 +42,9 @@ class SteadyRunner(CommonRunner):
 
         # Set a steady state flag for paleo inputs so delta temp. doesn't update
         self.model_inputs.steady = True
+
+        # Model start time
+        self.t0 = abs(self.start_age - -11554.)
 
             
         ### Setup the UKF
@@ -101,5 +104,5 @@ class SteadyRunner(CommonRunner):
                 plt.show()"""
         
 
-        self.model.write_steady_file(self.steady_file_name)
+        self.model.write_state(self.steady_file_name, self.t0)
         
