@@ -35,11 +35,11 @@ class PriorWriter(object):
         ### Plot samples from prior
         ##########################################################################
 
-        #samples = np.random.multivariate_normal(x, Pxx, 100)
+        samples = np.random.multivariate_normal(x, Pxx, 100)
 
-        #for i in range(100):
-        #    plt.plot(samples[i])
-        #plt.show()
+        for i in range(100):
+            plt.plot(samples[i])
+        plt.show()
         
          
         ### Get a set of sigma points
@@ -48,14 +48,14 @@ class PriorWriter(object):
         points = SigmaPoints(x, Pxx)
         X, wm, wc = points.get_set(set_type, inputs['kappa'])
 
-        if 'param_names' in inputs:
-            # Plot the sigma points
-            for i in range(len(X)):
-                x_i = X[i,:-len(u)]
-                plt.plot(x_i, marker = 'o')
-                print(X[i,-len(u):])
+        #if 'param_names' in inputs:
+        # Plot the sigma points
+        for i in range(len(X)):
+            x_i = X[i,:]
+            plt.plot(x_i, marker = 'o')
+            #print(X[i,-len(u):])
 
-            L_steady = inputs['L_steady']
+        #L_steady = inputs['L_steady']
         plt.show()
                 
         ### Write the prior info to a file
