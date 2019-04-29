@@ -35,8 +35,8 @@ inputs['H0_c'] = inputs['S_ref'] - inputs['B']
 #plt.show()
 #quit()
 
-#inputs['input_file_name'] = '/home/jake/flow_model/output_files/inversions/cov1/flowline.h5'
-#inputs['state_file_name'] = '/home/jake/flow_model/output_files/inversions/cov1/state0.h5'
+inputs['input_file_name'] = '/home/jake/flow_model/output_files/inversions/cov1/flowline.h5'
+inputs['state_file_name'] = '/home/jake/flow_model/output_files/inversions/cov1/state0.h5'
 
 
 

@@ -151,7 +151,9 @@ class ModelWrapper(object):
             # Set DG initial thickness
             self.input_functions['H0'] = interpolate(self.input_functions['H0_c'], self.V_dg)            
             
-        
+        dolfin.plot(self.input_functions['P10'])
+        plt.show()
+            
         #### Create boundary facet function
         ########################################################################
         self.boundaries = MeshFunction('size_t', self.mesh, self.mesh.topology().dim() - 1, 0)
