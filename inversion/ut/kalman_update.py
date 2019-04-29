@@ -66,7 +66,7 @@ class KalmanUpdate(object):
 
         S += self.Pyy
         
-        # Compute predicted measurement covariance
+        # Compute predicted cross covariance
         C = np.zeros((self.X.shape[1], self.Y.shape[1]))
         for i in range(len(self.w_c)):
             print(i)
