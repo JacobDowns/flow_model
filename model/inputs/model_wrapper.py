@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 from dolfin import *
+import matplotlib.pyplot as plt
 
 class ModelWrapper(object):
 
@@ -36,22 +37,35 @@ class ModelWrapper(object):
         self.V_dg = FunctionSpace(self.mesh, self.E_dg)
         self.V_r = FunctionSpace(self.mesh, self.E_r)
 
-        # Flowline CG fields
-        flowline_cg_fields = ['B', 'width', 'S_ref']
-        flowline_cg_fields += ['P' + str(i) for i in range(12)]
-        flowline_cg_fields += ['T' + str(i) for i in range(12)]
-        # State CG fields
-        state_cg_fields = ['H0_c']
-        # State DG fields
-        state_dg_fields = ['H0']
-        # Flowline R fields
-        flowline_r_fields = ['domain_len']
-        # State R fields
-        state_r_fields = ['L0', 't0']
+        # Dictionary of function spaces
+        function_spaces = {
+            'CG' : self.V_cg,
+            'DG' : self.V_dg,
+            'R'  : self.V_r
+        }
 
-        self.cg_fields = flowline_cg_fields + state_cg_fields
-        self.dg_fields = state_dg_fields
-        self.r_fields = flowline_cg_fields + state_cg_fields
+        # Flowline functions and function spaces
+        flowline_fields = {
+            'B' : 'CG',
+            'width' : 'CG',
+            'S_ref' : 'CG',
+            'domain_len' : 'R'
+        }
+
+        for i in range(12):
+            flowline_fields['P' + str(i)] = 'CG'
+            flowline_fields['T' + str(i)] = 'CG'
+
+        # State functions and function spaces
+        state_fields = {
+            'H0_c' : 'CG',
+            'H0' : 'DG',
+            'L0' : 'R',
+            't0' : 'R'
+        }
+
+        all_fields = flowline_fields.copy()
+        all_fields.update(state_fields)
         
         
         ### Create Fenics functions
@@ -59,47 +73,43 @@ class ModelWrapper(object):
 
         self.input_functions = {}
         self.original_cg_functions = {}
+            
+        for field_name, space in flowline_fields.items():
+            function_space = function_spaces[space]
+            self.input_functions[field_name] = Function(function_space)
+            if space == 'CG':
+                self.original_cg_functions[field_name] = Function(function_space)
 
-        for field_name in self.cg_fields:
-            self.input_functions[field_name] = Function(self.V_cg)
-            self.original_cg_functions[field_name] = Function(self.V_cg)
-        for field_name in self.dg_fields:
-            self.input_functions[field_name] = Function(self.V_dg)
-        for field_name in self.r_fields:
-            self.input_functions[field_name] = Function(self.V_r)
+        for field_name, space in state_fields.items():
+            function_space = function_spaces[space]
+            self.input_functions[field_name] = Function(function_space)
+            if space == 'CG':
+                self.original_cg_functions[field_name] = Function(function_space)
 
-    
+
         ### Load inputs from .h5 files
         ######################################################## 
 
         if 'input_file_name' in input_dict:
-        
-            for field_name in flowline_cg_fields:
-                print(field_name)
-                self.input_file.read(self.input_functions[field_name], field_name)
-                #self.input_file.read(self.original_cg_functions[field_name], field_name)
-                print("Done")
-                print()
 
-            """
-            for field_name in state_cg_fields:
-                print(field_name)
-                self.state_input_file.read(self.input_functions[field_name], field_name)
-                self.state_input_file.read(self.original_cg_functions[field_name], field_name)
-                print("Done")
-                print()
+            for field_name, space in flowline_fields.items():
+                function_space = function_spaces[space]
+                f = Function(function_space)
+                self.input_file.read(f, field_name)
+                self.input_functions[field_name].assign(f)
+
+            for field_name, space in state_fields.items():
+                function_space = function_spaces[space]
+                f = Function(function_space)
+                self.state_input_file.read(f, field_name)
+                self.input_functions[field_name].assign(f)
+
+            for field_name, space in all_fields.items():
+                if space == 'CG':
+                    self.original_cg_functions[field_name].assign(self.input_functions[field_name])
 
         
-            for field in state_dg_fields:
-                print 
-                self.state_input_file.read(self.input_functions[field], field)
-            for field in flowline_r_fields:
-                self.input_file.read(self.input_functions[field], field)
-            for field in state_r_fields:
-                self.state_input_file.read(self.input_functions[field], field)
-       
-        #quit()        
-        ### Create interpolated CG functions
+        ### Interpolate all the CG functions
         ########################################################
 
         self.interp_functions = {}
@@ -107,18 +117,41 @@ class ModelWrapper(object):
         if 'input_file_name' in input_dict:
             # Along flow coordinates
             x = self.mesh_coords
-            for field in self.cg_fields:
-                vals = project(self.input_functions[field]).compute_vertex_values()
-                self.interp_functions[field] = UnivariateSpline(x, vals, k = 3, s =  0.005) 
+            # Create interpolated functions
+            for field_name in self.original_cg_functions:
+                vals = project(self.input_functions[field_name]).compute_vertex_values()
+                self.interp_functions[field_name] = UnivariateSpline(x, vals, k = 3, s =  0.005)
         else:
             # Length of arrays
-            N = input_dict['B']
+            N = len(input_dict['B'])
             # Along flow coordinate
             x = np.linspace(0., 1., N)
-            for field in self.cg_fields:                          
-                self.interp_functions[field] = UnivariateSpline(x, input_dict[field], k = 3, s =  0.005)
+            # Create interpolated functions
+            for field_name in self.original_cg_functions:
+                self.interp_functions[field_name] = UnivariateSpline(x, input_dict[field_name], k = 3, s =  0.005)
 
-                
+
+        ### Initial state
+        ########################################################################
+
+        if 'input_file_name' in input_dict:
+            self.domain_len = float(self.input_functions['L0'])
+            L0 = float(self.input_functions['L0'])
+            
+        else:
+            # Domain length
+            self.domain_len = input_dict['domain_len']
+            # Get the margin position
+            H_n = self.interp_functions['H0_c'](self.mesh_coords)
+            first_index = np.where(abs(H_n) > 15.)[0].max()
+            x = np.linspace(0., 1., N)
+            L0 = x[first_index] * self.domain_len
+            # Update length
+            self.update_interp_all(L0)
+            # Set DG initial thickness
+            self.input_functions['H0'] = interpolate(self.input_functions['H0_c'], self.V_dg)            
+            
+        
         #### Create boundary facet function
         ########################################################################
         self.boundaries = MeshFunction('size_t', self.mesh, self.mesh.topology().dim() - 1, 0)
@@ -128,6 +161,29 @@ class ModelWrapper(object):
                 # Terminus
                self.boundaries[f] = 1
             if near(f.midpoint().x(), 0):
-               # Divide
+                # Divide
                self.boundaries[f] = 2
-            """
+
+               
+    # Update all inputs that depend on glacier length L
+    def update_interp_all(self, L):
+        frac = L / self.domain_len
+
+        for field_name in self.original_cg_functions:
+            self.input_functions[field_name].vector()[:] = \
+             np.ascontiguousarray(self.interp_functions[field_name](self.mesh_coords * frac)[::-1])
+
+
+    # Update only the given fields
+    def update_interp_fields(self, field_names, L):
+        frac = L / self.domain_len
+
+        for field_name in field_names:
+            self.input_functions[field_name].vector()[:] = \
+             np.ascontiguousarray(self.interp_functions[field_name](self.mesh_coords * frac)[::-1])
+
+
+    # Get value of interpolated field at a point
+    def get_interp_value(self, field_name, x):
+        frac = x / self.domain_len
+        return self.interp_functions[field_name](frac)

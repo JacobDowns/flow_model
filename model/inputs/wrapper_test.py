@@ -18,23 +18,27 @@ H_max = 3000.
 # Bed
 inputs['B'] = np.zeros_like(x)
 # Surface
-#inputs['S_ref'] = np.zeros_like(x)
-#indexes = x <= L0
-#inputs['S_ref'][indexes] = np.sqrt((H_max)**2*(1. - (x[indexes] / L0)))
+inputs['S_ref'] = np.zeros_like(x)
+indexes = x <= L0
+inputs['S_ref'][indexes] = np.sqrt((H_max)**2*(1. - (x[indexes] / L0)))
 # Width
-#inputs['width'] = 1000.*np.ones_like(x)
+inputs['width'] = 1000.*np.ones_like(x)
 # Temperature and precip
-
 for i in range(12):
     inputs['T' + str(i)] = -10. + x / 100e3
     inputs['P' + str(i)] = np.sin(x / 100e3)**2
     #plt.plot(inputs['P' + str(i)])
 
-#plt.plot(S)
-#plt.show()
+inputs['H0_c'] = inputs['S_ref'] - inputs['B']
 
-inputs['input_file_name'] = '/home/jake/flow_model/output_files/inversions/covariance_comparison1/flowline.h5'
-inputs['state_file_name'] = '/home/jake/flow_model/output_files/inversions/covariance_comparison1/state0.h5'
+#plt.plot(inputs['S_ref'])
+#plt.show()
+#quit()
+
+#inputs['input_file_name'] = '/home/jake/flow_model/output_files/inversions/cov1/flowline.h5'
+#inputs['state_file_name'] = '/home/jake/flow_model/output_files/inversions/cov1/state0.h5'
+
+
 
 wrapper = ModelWrapper(inputs)
 
