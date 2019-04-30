@@ -137,7 +137,7 @@ class ModelWrapper(object):
         if 'input_file_name' in input_dict:
             self.domain_len = float(self.input_functions['L0'])
             L0 = float(self.input_functions['L0'])
-            
+            self.update_interp_all(L0)
         else:
             # Domain length
             self.domain_len = input_dict['domain_len']
@@ -150,10 +150,7 @@ class ModelWrapper(object):
             self.update_interp_all(L0)
             # Set DG initial thickness
             self.input_functions['H0'] = interpolate(self.input_functions['H0_c'], self.V_dg)            
-            
-        dolfin.plot(self.input_functions['P10'])
-        plt.show()
-            
+                        
         #### Create boundary facet function
         ########################################################################
         self.boundaries = MeshFunction('size_t', self.mesh, self.mesh.topology().dim() - 1, 0)
@@ -165,6 +162,9 @@ class ModelWrapper(object):
             if near(f.midpoint().x(), 0):
                 # Divide
                self.boundaries[f] = 2
+
+               
+        ### Create the model 
 
                
     # Update all inputs that depend on glacier length L
