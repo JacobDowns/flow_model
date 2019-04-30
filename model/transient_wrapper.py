@@ -22,6 +22,9 @@ class TransientWrapper(ModelWrapper):
 
       # Assign model input functions
       def update_inputs(self, L, params):
+
+        
+          
         # Update length dependent fields
         self.update_interp_all(L)
 
@@ -34,8 +37,7 @@ class TransientWrapper(ModelWrapper):
         # Update model width
         self.width.assign(self.input_functions['width'])
         
-       
-        
-        self.adot_prime_func.assign(project(self.adot_prime, self.V_cg))
+        # Update the surface mass balance
+        self.model.adot.assign(self.pdd_model.get_adot(params))
     
         self.precip_func.assign(self.model_inputs.precip_func)
