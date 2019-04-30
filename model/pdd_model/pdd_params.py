@@ -11,7 +11,3 @@ pdd_params['lambda_precip'] = 0.07
 pdd_params['super_ice_frac'] = 0.6
 # Elevation lapse rate  (degrees C / km)
 pdd_params['lapse_rate'] = 5.
-# Default monthly temperature anomaly (m.w.e / a)
-pdd_params['monthly_dps'] = np.zeros(12)
-# Default monthly temperature anomaly (C)
-pdd_params['monthly_dts'] = np.zeros(12)

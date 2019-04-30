@@ -9,9 +9,9 @@ parameters["form_compiler"]["representation"] = "uflacs"
 parameters['form_compiler']['quadrature_degree'] = 4
 parameters['allow_extrapolation'] = True
 
-class ForwardIceModel(object):
+class IceModel(object):
 
-    def __init__(self, model_inputs, out_dir, checkpoint_file):
+    def __init__(self, model_inputs):
 
         # Model inputs object
         self.model_inputs = model_inputs
@@ -159,10 +159,6 @@ class ForwardIceModel(object):
         self.min_thickness = Constant(15.0)
         # CG ice thickness at last time step
         self.S0_c = Function(self.V_cg)
-        # SMB expression
-        self.adot_prime = model_inputs.get_adot_exp(self.S0_c)
-        # SMB as a function
-        self.adot_prime_func = Function(self.V_cg)
         # Precip. (snowfall) as a function
         self.precip_func = Function(self.V_cg)
 
@@ -260,7 +256,7 @@ class ForwardIceModel(object):
         self.precip_func.assign(self.model_inputs.precip_func)
 
 
-    # Step the model forwar
+    # Step the model forward
     def step(self, precip_param = 0.0, accept = False, output = False):
         
         # Update length variable inputs

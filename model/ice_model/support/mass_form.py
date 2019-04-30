@@ -22,8 +22,8 @@ class MassForm(object):
         xsi = model.xsi
         # Boundary measure
         ds1 = dolfin.ds(subdomain_data = model.boundaries)
-        # SMB expression
-        adot_prime = model.adot_prime
+        # SMB
+        adot = model.adot
         # Ice stream width
         width = model.width
         # Spatial coordinate
@@ -42,7 +42,7 @@ class MassForm(object):
 
         ### Mass balance residual
         ########################################################################
-        R_mass = (L*width*dHdt*xsi + L*H*dwdt*xsi + H*width*dLdt*xsi - L*width*adot_prime*xsi)*dx
+        R_mass = (L*width*dHdt*xsi + L*H*dwdt*xsi + H*width*dLdt*xsi - L*width*adot*xsi)*dx
         R_mass += uH*jump(xsi)*dS
         R_mass += (q_vel / sqrt(q_vel**2 + Constant(1e-10))) * q_flux*xsi*ds1(1)
 
