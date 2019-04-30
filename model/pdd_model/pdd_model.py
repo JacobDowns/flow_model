@@ -2,6 +2,7 @@ import numpy as np
 from dolfin import *
 from pdd_calculator import PDDCalculator
 from pdd_params import pdd_params
+import matplotlib.pyplot as plt
 
 """
 Positive degree day model. Computes a surface mass balance function adot. 
@@ -56,15 +57,15 @@ class PDDModel(object):
         ########################################################################
         
         # Get the reference elevation used by climate model
-        ref_elevation_vec = self.input_functions['S_ref'].vector().get_local()
+        ref_elevation_vec = self.model_wrapper.input_functions['S_ref'].vector().get_local()
         # Get the modeled elevation
-        modeled_elevation_vec = self.modeled_S.vector().get_local()
+        modeled_elevation_vec = self.model_wrapper.model.S0_c.vector().get_local()
         # Compute the lapse rate correction in C
         lapse_correction = ((ref_elevation_vec - modeled_elevation_vec) / 1000.0) * lapse_rate
         # Total snow that has fallen for the year
-        total_snowfall = np.zeros_like(self.input_functions['S_ref'].vector().get_local())
+        total_snowfall = np.zeros_like(self.model_wrapper.input_functions['S_ref'].vector().get_local())
         # Total number of pdds for the year
-        total_pdds = np.zeros_like(self.input_functions['S_ref'].vector().get_local())
+        total_pdds = np.zeros_like(self.model_wrapper.input_functions['S_ref'].vector().get_local())
         
         for i in range(12):
             # Compute the delta temp. adjusted / lapse rate corrected temp. for this month
@@ -119,4 +120,4 @@ class PDDModel(object):
         # Total yearly mass balance in m.i.e. assuming snowpack turns to ice at end of year
         smb = (accumulation - ablation) * (10./9.)
 
-        self.model.adot.vector()[:] = smb
+        self.model_wrapper.model.adot.vector()[:] = smb

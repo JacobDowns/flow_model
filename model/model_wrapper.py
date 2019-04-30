@@ -138,7 +138,7 @@ class ModelWrapper(object):
         ########################################################################
 
         if 'input_file_name' in model_inputs:
-            self.domain_len = float(self.input_functions['L0'])
+            self.domain_len = float(self.input_functions['domain_len'])
             self.L_init = float(self.input_functions['L0'])
             self.update_interp_all(self.L_init)
         else:
@@ -153,7 +153,8 @@ class ModelWrapper(object):
             self.update_interp_all(self.L_init)
             # Set DG initial thickness
             self.input_functions['H0'] = interpolate(self.input_functions['H0_c'], self.V_dg)            
-                        
+
+            
         ### Create boundary facet function
         ########################################################################
 

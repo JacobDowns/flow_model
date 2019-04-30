@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from dolfin import *
 from model.pdd_wrapper import PDDWrapper
 
 inputs = {}
@@ -13,6 +14,19 @@ model_inputs['state_file_name'] = '/home/jake/flow_model/output_files/inversions
 model_inputs['dt'] = 1./3.
 
 wrapper = PDDWrapper(inputs)
-wrapper.step()
+
+
+step_params = {}
+
+step_params['pdd_params'] = {}
+step_params['pdd_params']['monthly_dts'] = -30.*np.ones(12)
+#step_params['pdd_params']['monthly_dps'] = np.ones(12)
+
+wrapper.step(step_params)
+dolfin.plot(wrapper.model.adot)
+plt.show()
+
+
+
 
 

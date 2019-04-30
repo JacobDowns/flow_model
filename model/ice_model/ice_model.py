@@ -19,8 +19,6 @@ class IceModel(object):
         self.mesh = model_wrapper.mesh
         # Physical constants / parameters
         self.ice_constants = ice_constants
-        # Max domain length
-        self.domain_len = float(self.model_wrapper.input_functions['domain_len'])
         # Model time
         self.t = float(self.model_wrapper.input_functions['t0'])
         
@@ -130,7 +128,7 @@ class IceModel(object):
         L0.vector()[:] = model_wrapper.L_init
         # Initialize initial thickness
         H0.assign(model_wrapper.input_functions['H0'])
-        H0_c.assign(model_wrapper.input_functions['H0_c'])
+        H0_c.assign(model_wrapper.original_cg_functions['H0_c'])
         # Initialize guesses for unknowns
         self.assigner.assign(U, [self.zero_guess, self.zero_guess, H0_c, H0, L0])
 
@@ -239,7 +237,7 @@ class IceModel(object):
 
         # Update previous solutions
         self.assigner_inv.assign([self.un_temp, self.u2n_temp, self.H0_c_temp, self.H0_temp, self.L0_temp], self.U)
-            
+             
 
         ### Accept the step by updating time
         ####################################################################
@@ -252,21 +250,20 @@ class IceModel(object):
         else :
             return float(self.L0_temp)
 
-        return float(self.L0)
-
 
     # Update model inputs
     def update(self, params = {}):
-        
+
+        # Update sea level
+        if 'sea_level' in params:
+            self.sea_level.assign(params['sea_level'])
+
         # Update model bed elevation
         self.B.assign(self.model_wrapper.input_functions['B'])
         # Update model basal traction
-        self.beta2.assign(self.model_wrapper.input_functions['beta2'])
+        self.beta2.assign(Constant(self.ice_constants['beta2']))
         # Update model surface
-        self.S0_c.assign(self.model.B + self.model.H0_c)
+        self.S0_c.assign(self.B + self.H0_c)
         # Update model width
         self.width.assign(self.model_wrapper.input_functions['width'])
-        
-        if 'sea_level' in params:
-            self.sea_level.assign(params['sea_level'])
    

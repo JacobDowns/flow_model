@@ -1,4 +1,5 @@
 import numpy as np
+from dolfin import *
 import matplotlib.pyplot as plt
 from model_wrapper import ModelWrapper
 from pdd_model.pdd_model import PDDModel
@@ -67,7 +68,7 @@ class PDDWrapper(ModelWrapper):
     def step(self, params = {}):
         # Update the model inputs
         self.update_inputs(float(self.model.L0), params)
-        #L = self.model.step()
+        L = self.model.step()
 
     
 
