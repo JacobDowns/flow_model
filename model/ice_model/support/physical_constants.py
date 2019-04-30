@@ -20,7 +20,5 @@ pcs['mu'] = Constant(1.0)
 pcs['A_s'] = Constant(pcs['rho']*pcs['g']*315.0/500.)
 # Minimum thickness
 pcs['thklim'] = 1.0
-# Overburden pressure fraction
-pcs['P_frac'] = 0.85
 # Sea level
 pcs['sea_level'] = -10000.

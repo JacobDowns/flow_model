@@ -1,4 +1,5 @@
 import numpy as np
+from dolfin import *
 from pdd_calculator import PDDCalculator
 from pdd_params import pdd_params
 
@@ -16,19 +17,19 @@ class PDDModel(object):
         self.pdd_params = pdd_params
         self.pdd_params.update(params)
         # Surface mass blance function
-        self.adot = Function(self.V_cg)
+        self.adot = Function(self.model_wrapper.V_cg)
         # Precipitation for the given year (for plotting) in m/a
-        self.precip_func = Function(self.V_cg)
+        self.precip_func = Function(self.model_wrapper.V_cg)
         # Temperature for the given year (for plotting) in C
-        self.temp = Function(self.V_cg)
+        self.temp = Function(self.model_wrapper.V_cg)
         # Object for calculating PDD's
         self.pdd_calc = PDDCalculator(self.pdd_params['pdd_var'])
 
 
     """
-    Compute SMB.
+    Update the model SMB function.
     """
-    def get_adot(self, params):
+    def update(self, params):
 
         ### Temperature, precipitation, and other parameters to use for the PDD model
         ########################################################################
@@ -118,4 +119,4 @@ class PDDModel(object):
         # Total yearly mass balance in m.i.e. assuming snowpack turns to ice at end of year
         smb = (accumulation - ablation) * (10./9.)
 
-        self.adot.vector()[:] = smb
+        self.model.adot.vector()[:] = smb

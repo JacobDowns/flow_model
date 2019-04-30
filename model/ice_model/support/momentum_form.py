@@ -49,13 +49,13 @@ class MomentumForm(object):
 
     def __init__(self, model):
         # Load physical constants
-        n = model.constants['n']
-        rho = model.constants['rho']
-        g = model.constants['g']
-        A_s = model.constants['A_s']
-        mu = model.constants['mu']
-        b = model.constants['b']
-        m = model.constants['m']
+        n = model.ice_constants['n']
+        rho = model.ice_constants['rho']
+        g = model.ice_constants['g']
+        A_s = model.ice_constants['A_s']
+        mu = model.ice_constants['mu']
+        b = model.ice_constants['b']
+        m = model.ice_constants['m']
         eps_reg = Constant(1e-5)
 
         # Continuous thickness

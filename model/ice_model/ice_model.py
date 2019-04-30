@@ -1,5 +1,5 @@
 from dolfin import *
-from support.physical_constants import *
+from support.ice_constants import *
 from support.momentum_form import *
 from support.mass_form import *
 from support.length_form_marine import *
@@ -11,18 +11,18 @@ parameters['allow_extrapolation'] = True
 
 class IceModel(object):
 
-    def __init__(self, model_inputs):
+    def __init__(self, model_wrapper):
 
         # Model inputs object
-        self.model_inputs = model_inputs
+        self.model_wrapper = model_wrapper
         # Mesh
-        self.mesh = model_inputs.mesh
+        self.mesh = model_wrapper.mesh
         # Physical constants / parameters
-        self.constants = pcs
+        self.ice_constants = ice_constants
         # Max domain length
-        self.domain_len = float(self.model_inputs.input_functions['domain_len'])
+        self.domain_len = float(self.model_wrapper.input_functions['domain_len'])
         # Model time
-        self.t = float(self.model_inputs.input_functions['t0'])
+        self.t = float(self.model_wrapper.input_functions['t0'])
         
 
         #### Function spaces
@@ -32,13 +32,13 @@ class IceModel(object):
         # velocity computations, DG0 (aka finite volume) for mass cons,
         # and "Real" (aka constant) elements for the length
 
-        E_cg = self.model_inputs.E_cg
-        E_dg = self.model_inputs.E_dg
-        E_r =  self.model_inputs.E_r
+        E_cg = self.model_wrapper.E_cg
+        E_dg = self.model_wrapper.E_dg
+        E_r =  self.model_wrapper.E_r
 
-        V_cg = self.model_inputs.V_cg
-        V_dg = self.model_inputs.V_dg
-        V_r =  self.model_inputs.V_r
+        V_cg = self.model_wrapper.V_cg
+        V_dg = self.model_wrapper.V_dg
+        V_r =  self.model_wrapper.V_r
 
         self.V_cg = V_cg
         self.V_dg = V_dg
@@ -120,17 +120,17 @@ class IceModel(object):
         self.adot = adot
         self.width = width
         # Facet function marking divide and margin boundaries
-        self.boundaries = model_inputs.boundaries
+        self.boundaries = model_wrapper.boundaries
 
 
         ### Function initialization
         ########################################################################
 
         # Assign initial ice sheet length from data
-        L0.vector()[:] = model_inputs.L_init
+        L0.vector()[:] = model_wrapper.L_init
         # Initialize initial thickness
-        H0.assign(model_inputs.input_functions['H0'])
-        H0_c.assign(model_inputs.input_functions['H0_c'])
+        H0.assign(model_wrapper.input_functions['H0'])
+        H0_c.assign(model_wrapper.input_functions['H0_c'])
         # Initialize guesses for unknowns
         self.assigner.assign(U, [self.zero_guess, self.zero_guess, H0_c, H0, L0])
 
@@ -145,30 +145,17 @@ class IceModel(object):
         # Time derivatives
         dLdt = (L - L0) / dt
         dHdt = (H - H0) / dt
-        # Overburden pressure
-        P_0 = Constant(self.constants['rho']*self.constants['g'])*H_c
-        # Overburden fraction
-        P_frac = Constant(self.constants['P_frac'])
-        # Water pressure
-        P_w = P_frac*P_0
         # Effective pressure
-        N = P_0 - P_w
+        N = Function(self.V_cg)
         # Sea level
-        self.sea_level = Constant(self.constants['sea_level'])
-        # Minimum ice thickness
-        self.min_thickness = Constant(15.0)
+        self.sea_level = Constant(self.ice_constants['sea_level'])
         # CG ice thickness at last time step
         self.S0_c = Function(self.V_cg)
-        # Precip. (snowfall) as a function
-        self.precip_func = Function(self.V_cg)
 
         self.S = S
         self.dLdt = dLdt
         self.dHdt = dHdt
         self.dt = dt
-        self.P_frac = P_frac
-        self.P_0 = P_0
-        self.P_w = P_w
         self.N = N
         
 
@@ -180,14 +167,6 @@ class IceModel(object):
         self.H0_c_temp = Function(V_cg)
         self.H0_temp = Function(V_dg)
         self.L0_temp = Function(V_r)
-
-
-        ### Initialize inputs
-        ########################################################################
-
-        self.update_inputs(model_inputs.L_init, 0.)
-        self.S0_c.assign(self.B + self.H0_c)
-        self.update_inputs(model_inputs.L_init, 0.)
 
 
         ### Variational forms
@@ -232,39 +211,18 @@ class IceModel(object):
                        'report' : False
                        }}
 
-        # Variable length problem
+        # Variational problem
         self.problem = NonlinearVariationalProblem(R, U, bcs=[], J=J, form_compiler_parameters = ffc_options)
-        
-
-        ### Setup the iterator for replaying a run
-        ########################################################################
-
-        # Get the time step from input file
-        self.dt.assign(self.model_inputs.dt)
-        # Iteration count
-        self.i = 0
+        # Time step
+        self.dt.assign(self.model_wrapper.dt)
 
 
-    # Assign input functions from model_inputs
-    def update_inputs(self, L, precip_param = 0.0):
-        self.S0_c.assign(self.B + self.H0_c)
-        self.model_inputs.update_inputs(L, self.t, precip_param)
-        self.B.assign(self.model_inputs.input_functions['B'])
-        self.beta2.assign(self.model_inputs.input_functions['beta2'])
-        self.adot_prime_func.assign(project(self.adot_prime, self.V_cg))
-        self.width.assign(self.model_inputs.input_functions['width'])
-        self.precip_func.assign(self.model_inputs.precip_func)
-
-
-    # Step the model forward
-    def step(self, precip_param = 0.0, accept = False, output = False):
-        
-        # Update length variable inputs
-        self.update_inputs(float(self.L0), precip_param)
-
+    # Step the model forward by one time step
+    def step(self, accept = False, output = False):
         
         ### Solve
         ####################################################################
+        
         try:
             self.assigner.assign(self.U, [self.un, self.u2n, self.H0_c, self.H0, self.L0])
             solver = NonlinearVariationalSolver(self.problem)
@@ -289,12 +247,7 @@ class IceModel(object):
         if accept:
             # Update time
             self.t += float(self.dt)
-            self.i += 1
             self.assigner_inv.assign([self.un, self.u2n, self.H0_c, self.H0, self.L0], self.U)
-
-            if output:
-                print("real step: ", self.t, self.H0_c.vector().max(), self.H0_c.vector().get_local()[0], float(self.L0))
-                
             return float(self.L0)
         else :
             return float(self.L0_temp)
@@ -302,15 +255,18 @@ class IceModel(object):
         return float(self.L0)
 
 
-    # Write the ice sheet model state to a file
-    def write_state(self, output_file_name, t0 = None):
+    # Update model inputs
+    def update(self, params = {}):
         
-        output_file = HDF5File(mpi_comm_world(), output_file_name + '.h5', 'w')
-        output_file.write(self.H0, "H0")
-        output_file.write(self.H0_c, "H0_c")
-        output_file.write(self.L0, "L0")
-        if not t0:
-            t0 = self.t
-        output_file.write(interpolate(Constant(t0), self.V_r), "t0")
-        output_file.flush()
-        output_file.close()
+        # Update model bed elevation
+        self.B.assign(self.model_wrapper.input_functions['B'])
+        # Update model basal traction
+        self.beta2.assign(self.model_wrapper.input_functions['beta2'])
+        # Update model surface
+        self.S0_c.assign(self.model.B + self.model.H0_c)
+        # Update model width
+        self.width.assign(self.model_wrapper.input_functions['width'])
+        
+        if 'sea_level' in params:
+            self.sea_level.assign(params['sea_level'])
+   

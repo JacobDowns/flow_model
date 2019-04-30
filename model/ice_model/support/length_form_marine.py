@@ -17,11 +17,11 @@ class LengthForm(object):
         # Sea level
         sea_level = model.sea_level
         # Density of ice
-        rho = model.constants['rho']
+        rho = model.ice_constants['rho']
         # Density of water
-        rho_w = model.constants['rho_w']
+        rho_w = model.ice_constants['rho_w']
         # Min. thickness
-        min_thickness = model.min_thickness
+        min_thickness = model.ice_constants['min_thickness']
         # Real test function
         chi = model.chi
         # Boundary measure

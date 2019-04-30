@@ -154,8 +154,9 @@ class ModelWrapper(object):
             # Set DG initial thickness
             self.input_functions['H0'] = interpolate(self.input_functions['H0_c'], self.V_dg)            
                         
-        #### Create boundary facet function
+        ### Create boundary facet function
         ########################################################################
+
         self.boundaries = MeshFunction('size_t', self.mesh, self.mesh.topology().dim() - 1, 0)
 
         for f in facets(self.mesh):
@@ -167,8 +168,14 @@ class ModelWrapper(object):
                self.boundaries[f] = 2
 
         ### Create the model
+        ########################################################################
+        
+        # Time step
+        self.dt = model_inputs['dt']
+        # Model
         self.model = IceModel(self)
-               
+
+        
     # Update all inputs that depend on glacier length L
     def update_interp_all(self, L):
         frac = L / self.domain_len
