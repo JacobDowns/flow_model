@@ -216,7 +216,7 @@ class IceModel(object):
 
 
     # Step the model forward by one time step
-    def step(self, accept = False, output = False):
+    def step(self, accept = True, output = False):
         
         ### Solve
         ####################################################################

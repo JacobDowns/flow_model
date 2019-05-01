@@ -1,6 +1,7 @@
 import numpy as np
 from dolfin import *
 from hydro_params import hydro_params
+import matplotlib.pyplot as plt
 
 """
 A subglacial hydrology model that computes effective pressure. 
@@ -15,17 +16,17 @@ class HydroModel(object):
         self.hydro_params = hydro_params
         self.hydro_params.update(params)
 
-        # Overburden pressure
-        P_0 = Constant(self.model_wrapper.model.ice_constants['rho']*self.model_wrapper.model.ice_constants['g'])*self.model_wrapper.model.H_c
-        # Overburden fraction
-        P_frac = Constant(self.hydro_params['P_frac'])
-        # Water pressure
-        P_w = P_frac*P_0
-        # Effective pressure
-        self.model_wrapper.model.N = P_0 - P_w
-
 
     def update(self, params = {}):
-        pass
-
-
+        # Ice density
+        rho = self.model_wrapper.model.ice_constants['rho']
+        # Gravitational constant
+        g = self.model_wrapper.model.ice_constants['g']
+        # Overburden fraction
+        P_frac = self.hydro_params['P_frac']
+        # Ice thickness
+        H_vec = self.model_wrapper.model.H0_c.vector().get_local()
+        # Overburden pressure
+        P_0 = rho*g*H_vec
+        # Set the effective pressure
+        self.model_wrapper.model.N.vector()[:] = (1. - P_frac)*P_0

@@ -149,8 +149,14 @@ class ModelWrapper(object):
             first_index = np.where(abs(H_n) > 15.)[0].max()
             x = np.linspace(0., 1., N)
             self.L_init = x[first_index] * self.domain_len
+            self.input_functions['L0'].assign(Constant(self.L_init))
+            # Assign the original cg functions
+            self.update_interp_all(self.domain_len)
+            for field_name in self.original_cg_functions:
+                self.original_cg_functions[field_name].assign(self.input_functions[field_name])
             # Update length
             self.update_interp_all(self.L_init)
+            self.original_cg_functions['H0_c'].assign(self.input_functions['H0_c'])
             # Set DG initial thickness
             self.input_functions['H0'] = interpolate(self.input_functions['H0_c'], self.V_dg)            
 
@@ -175,7 +181,9 @@ class ModelWrapper(object):
         self.dt = model_inputs['dt']
         # Model
         self.model = IceModel(self)
-
+        # Update
+        self.model.update()
+        
         
     # Update all inputs that depend on glacier length L
     def update_interp_all(self, L):

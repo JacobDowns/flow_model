@@ -5,6 +5,8 @@ from model_wrapper import ModelWrapper
 from pdd_model.pdd_model import PDDModel
 from hydro_model.hydro_model import HydroModel
 
+set_log_level(40)
+
 class PDDWrapper(ModelWrapper):
 
     def __init__(self, inputs):
@@ -29,8 +31,13 @@ class PDDWrapper(ModelWrapper):
             hydro_params = inputs['hydro_params']
 
         self.hydro_model = HydroModel(self, hydro_params)
-        
 
+        ### Make sure everything is initialized
+        ########################################################
+        
+        self.update_inputs(float(self.input_functions['L0']), {})
+
+        
     # Assign model input functions
     def update_inputs(self, L, params):
  
@@ -56,25 +63,18 @@ class PDDWrapper(ModelWrapper):
         ### Update ice model inputs
         ########################################################
         
-        # Update model inputs like sea level
-        self.model.update(ice_params)
         # Update the surface mass balance function 
         self.pdd_model.update(pdd_params)
         # Update the effective pressure
         self.hydro_model.update(hydro_params)
-
+        # Update model inputs like sea level
+        self.model.update(ice_params)
+        
 
     # Step the model forward by one time step
     def step(self, params = {}):
         # Update the model inputs
         self.update_inputs(float(self.model.L0), params)
+        #print(float(self.model.L0))
         L = self.model.step()
-
-    
-
-
-    
-        
-
-
-        
+        print(L)
