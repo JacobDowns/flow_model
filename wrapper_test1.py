@@ -40,7 +40,7 @@ model_inputs['width'] = 1000.*np.ones_like(x)
 ### Temperature and precip
 
 # Some monthly temp. averages (C)
-T = [-24.25, -24.87, -23.01, -15.43, -7.08, 0.08, 2.28, -0.29, -6.19, -13.70, -18.62, -22.41]
+T = 10.*np.ones(12)
 # Some monthly precip. averages (m.w.e. / a)
 P = [0.300, 0.302, 0.320, 0.378, 0.367, 0.351, 0.270, 0.362, 0.430, 0.430, 0.489, 0.343]
 
@@ -50,11 +50,14 @@ for i in range(12):
 
 wrapper = PDDWrapper(inputs)
 
-for i in range(10):
+for i in range(100):
     print(i)
     wrapper.step()
 
 print(float(wrapper.model.L0))
+#dolfin.plot(wrapper.model.S0_c)
+
+
 dolfin.plot(wrapper.model.adot)
 plt.show()
 

@@ -15,12 +15,12 @@ model_inputs['dt'] = 1./3.
 
 wrapper = PDDWrapper(inputs)
 
-
 sea_level = np.linspace(-75., 25, 750)
 for i in range(750):
-    step_params = {}
-    step_params['pdd_params'] = {'monthly_dts' : -5.*np.ones(12)}
-    step_params['ice_params'] = {'sea_level' : sea_level[i]}
+    params = {}
+    params['pdd_params'] = {'monthly_dts' : -5.*np.ones(12)}
+    params['ice_params'] = {'sea_level' : sea_level[i]}
+    params['step_params'] = {'}
     print(sea_level[i])
     wrapper.step(step_params)
     print(float(wrapper.model.sea_level))

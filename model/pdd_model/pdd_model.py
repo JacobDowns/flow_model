@@ -25,7 +25,7 @@ class PDDModel(object):
         self.temp = Function(self.model_wrapper.V_cg)
         # Object for calculating PDD's
         self.pdd_calc = PDDCalculator(self.pdd_params['pdd_var'])
-
+        
 
     """
     Update the model SMB function.
@@ -66,11 +66,6 @@ class PDDModel(object):
         total_snowfall = np.zeros_like(self.model_wrapper.input_functions['S_ref'].vector().get_local())
         # Total number of pdds for the year
         total_pdds = np.zeros_like(self.model_wrapper.input_functions['S_ref'].vector().get_local())
-
-        
-        plt.plot(ref_elevation_vec)
-        plt.plot(modeled_elevation_vec)
-        plt.show()
         
         for i in range(12):
             # Compute the delta temp. adjusted / lapse rate corrected temp. for this month
@@ -87,6 +82,7 @@ class PDDModel(object):
             snowfall_frac = self.pdd_calc.get_acc_frac(temp_vec)    
             # Compute snowfall for the month in m.w.e
             total_snowfall += precip_vec * (1./12.) * snowfall_frac
+
         # Save total snowfall for plotting
         self.precip_func.vector()[:] = total_snowfall
 

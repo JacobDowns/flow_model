@@ -47,7 +47,7 @@ class PDDWrapper(ModelWrapper):
         # Ice model parameters
         ice_params = {}
         if 'ice_params' in params:
-            ice_params = 'ice_params'
+            ice_params = params['ice_params']
         
         # PDD model parameters
         pdd_params = {}
@@ -75,6 +75,9 @@ class PDDWrapper(ModelWrapper):
     def step(self, params = {}):
         # Update the model inputs
         self.update_inputs(float(self.model.L0), params)
-        #print(float(self.model.L0))
-        L = self.model.step()
+        # Get step
+        step_params = {}
+        if 'step_params' in params:
+            step_params = params['step_params']
+        L = self.model.step(step_params)
         print(L)
