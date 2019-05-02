@@ -7,7 +7,6 @@ inputs = {}
 
 ### Model inputs
 #############################################################
-
 inputs['model_inputs'] = {}
 model_inputs = inputs['model_inputs']
 
@@ -21,9 +20,11 @@ model_inputs['L0'] = 400e3
 x = np.linspace(0., model_inputs['domain_len'], 450)
 
 ### Bedrock elevation
+######################################################################
 model_inputs['B'] = 200.*np.sin(x / 10e3)
 
 ### Surface
+######################################################################
 model_inputs['S_ref'] = np.zeros_like(x)
 indexes = x <= model_inputs['L0']
 model_inputs['S_ref'][indexes] = np.sqrt((3000.)**2*(1. - (x[indexes] / model_inputs['L0'])))
@@ -32,13 +33,17 @@ index = np.where(model_inputs['S_ref'] - model_inputs['B'] <= 15.)[0].min()
 model_inputs['S_ref'][index:] = model_inputs['B'][index:]
 
 ### Ice thickness
+######################################################################
+
 model_inputs['H0_c'] = model_inputs['S_ref'] - model_inputs['B']
 
 ### Ice stream width
+######################################################################
+
 model_inputs['width'] = 1000.*np.ones_like(x)
 
 ### Temperature and precip
-
+######################################################################
 # Some monthly temp. averages (C)
 T = 10.*np.ones(12)
 # Some monthly precip. averages (m.w.e. / a)
@@ -59,22 +64,16 @@ B = wrapper.original_cg_functions['B'].vector().get_local()[::-1]
 domain_len = wrapper.domain_len
 # Mesh coordinates
 x = wrapper.mesh_coords
-
 # Run the model 
 for i in range(50):
     wrapper.step()
-
 # Surface
 S = wrapper.model.S0_c.vector().get_local()[::-1]
 # Glacier length
 L = float(wrapper.model.L0)
 
-#print(domain_len)
-#print(L)
-#quit()
 plt.plot(x * domain_len, B)
 plt.plot(x * L, S)
-
 plt.show()
 
 
