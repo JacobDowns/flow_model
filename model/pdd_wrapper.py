@@ -79,5 +79,4 @@ class PDDWrapper(ModelWrapper):
         step_params = {}
         if 'step_params' in params:
             step_params = params['step_params']
-        L = self.model.step(step_params)
-        print(L)
+        L = self.model.step()
