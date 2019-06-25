@@ -44,7 +44,7 @@ class GLDataset:
 
 
     def setData(self, name):
-        dataFile = h5py.File('/home/jake/flow_model/paleo_data/GreenlandInBedCoord.h5', 'r')
+        dataFile = h5py.File('/media/drive1/refactoring/data/GreenlandInBedCoord.h5', 'r')
         if name == 'velocity':
             vx = dataFile['VX'][:]
             vy = dataFile['VY'][:]
