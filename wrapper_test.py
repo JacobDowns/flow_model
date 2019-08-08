@@ -20,7 +20,7 @@ for i in range(750):
     params = {}
     params['pdd_params'] = {'monthly_dts' : -5.*np.ones(12)}
     params['ice_params'] = {'sea_level' : sea_level[i]}
-    params['step_params'] = {'}
+    #params['step_params'] = {}
     print(sea_level[i])
     wrapper.step(step_params)
     print(float(wrapper.model.sea_level))

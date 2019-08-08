@@ -1,8 +1,9 @@
 from dolfin import *
 from support.ice_constants import *
-from support.momentum_form import *
+from support.momentum_form_marine import *
 from support.mass_form import *
 from support.length_form_marine import *
+from ..support.expressions import *
 
 parameters['form_compiler']['cpp_optimize'] = True
 parameters["form_compiler"]["representation"] = "uflacs"
@@ -146,16 +147,27 @@ class IceModel(object):
         # Effective pressure
         N = Function(self.V_cg)
         # Sea level
-        self.sea_level = Constant(self.ice_constants['sea_level'])
+        sea_level = Constant(self.ice_constants['sea_level'])
         # CG ice thickness at last time step
         self.S0_c = Function(self.V_cg)
+        # Water surface, or the greater of bedrock topography or zero
+        l = softplus(sea_level, B)
+        rho = ice_constants['rho']
+        rho_w = ice_constants['rho_w']
+        # Ice base 
+        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.2) 
+        # Water depth
+        D = softplus(-(B - sea_level), Constant(0.))
 
         self.S = S
         self.dLdt = dLdt
         self.dHdt = dHdt
         self.dt = dt
         self.N = N
-        
+        self.sea_level = sea_level
+        self.l = l
+        self.Bhat = Bhat
+        self.D = D
 
         ### Temporary variables that store variable values before a step is accepted
         ########################################################################

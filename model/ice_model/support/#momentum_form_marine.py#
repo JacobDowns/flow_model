@@ -1,5 +1,6 @@
 import numpy as np
 from dolfin import *
+from ...support.expressions import *
 
 ### Support Functions
 ########################################################
@@ -62,6 +63,10 @@ class MomentumForm(object):
         H_c = model.H_c
         # Bed elevation
         B = model.B
+        # The ice base
+        Bhat = model.Bhat
+        # Greater of bed elevation or water surface
+        l = model.l
         # Basal traction
         beta2 = model.beta2
         # Ice sheet length
@@ -72,6 +77,12 @@ class MomentumForm(object):
         N = model.N
         # Facet normal vector
         nhat = FacetNormal(model.mesh)
+        # Overburden pressure
+        P_0 = model.P_0
+        # Water pressure
+        P_w = model.P_w
+        # Boundary measure
+        
 
         # Sigma-coordinate jacobian terms
         def dsdx(s):
@@ -101,7 +112,7 @@ class MomentumForm(object):
             return Constant(b)/2.*(1./L**2*(u.dx(s,0) + u.ds(s)*dsdx(s))**2 \
                         +0.25*((u.ds(s)*dsdz(s))**2) \
                         + eps_reg)**((1.-n)/(2*n))
-
+        
         # Longitudinal stress
         def membrane_xx(s):
             return 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(4*(u.dx(s,0) + u.ds(s)*dsdx(s)))# + 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(2*u(s)/width*width.dx(0))
@@ -114,19 +125,21 @@ class MomentumForm(object):
         def tau_dx(s):
             return 1./L*rho*g*H_c*S.dx(0)*phi(s)
 
-        # Driving stress for floating ice
-        def tau_dx_f(s):
-            return 1./L*rho*g*(1-rho/rho_w)*H_c*H_c.dx(0)*phi(s)
-
         # Create a vertical integrator using gauss-legendre quadrature
         points = np.array([0.0,0.4688,0.8302,1.0])
         weights = np.array([0.4876/2.,0.4317,0.2768,0.0476])
         vi = VerticalIntegrator(points,weights)
 
-        # Basal Shear stress (linear case)
+        ### Basal Shear stress (linear case)
+        # A scaling function that reduces tau_b to 0 where ice is floating
+        #tau_b_scale = Constant(1.0) - 
         tau_b = beta2*N*u(1)
 
         # Residual of the first order equation
         R_momentum = (- vi.intz(membrane_xx) - vi.intz(shear_xz) - phi(1)*tau_b - vi.intz(tau_dx))*L*dx
+
+        # The hydrostatic boundary condition at the terminus
+        R_momentum += Constant(0.5)*(P_0*H_c - P_w*(l-B) )*nhat[0]*phibar*df.ds(1)
+        R_momentum += Constant(0.5)*rho*g*(1-(rho/rho_w))*H**2*Phi[0]*ds(1)
 
         self.R_momentum = R_momentum
