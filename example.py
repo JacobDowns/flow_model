@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from dolfin import *
 from model.pdd_wrapper import PDDWrapper
-from scipy.special import expit
 
 inputs = {}
 
@@ -16,34 +15,22 @@ model_inputs['dt'] = 1./3.
 # Length of full domain
 model_inputs['domain_len'] = 450e3
 # Initial glacier length 
-model_inputs['L0'] = 200e3
+model_inputs['L0'] = 400e3
 # Along flow coordinate
 x = np.linspace(0., model_inputs['domain_len'], 450)
 
 ### Bedrock elevation
 ######################################################################
-model_inputs['B'] = 1000.*(1.0 - expit((x - 250e3) / 15e3 )) - 980. #500.0 - x/2.5e2
-
+model_inputs['B'] = 100.*np.sin(x / 10e3) - x / 5e3
 
 ### Surface
 ######################################################################
 model_inputs['S_ref'] = np.zeros_like(x)
 indexes = x <= model_inputs['L0']
-model_inputs['S_ref'][indexes] = np.sqrt((2000.)**2*(1. - (x[indexes] / model_inputs['L0']))) - 300.
-
-
+model_inputs['S_ref'][indexes] = np.sqrt((3300.)**2*(1. - (x[indexes] / model_inputs['L0'])))
 # Correct the surface so it's not under the bed...
 index = np.where(model_inputs['S_ref'] - model_inputs['B'] <= 15.)[0].min()
 model_inputs['S_ref'][index:] = model_inputs['B'][index:]
-
-
-plt.plot(model_inputs['B'])
-plt.plot(model_inputs['S_ref'])
-plt.plot(np.zeros_like(model_inputs['B']))
-plt.show()
-
-#quit()
-
 
 ### Ice thickness
 ######################################################################
@@ -58,9 +45,9 @@ model_inputs['width'] = 1000.*np.ones_like(x)
 ### Temperature and precip
 ######################################################################
 # Some monthly temp. averages (C)
-T = -10.*np.ones(12)
+T = 10.*np.ones(12)
 # Some monthly precip. averages (m.w.e. / a)
-P = 1.5*np.ones(12)
+P = [0.300, 0.302, 0.320, 0.378, 0.367, 0.351, 0.270, 0.362, 0.430, 0.430, 0.489, 0.343]
 
 for i in range(12):
     model_inputs['T' + str(i)] = T[i]*np.ones_like(x)
@@ -71,13 +58,6 @@ for i in range(12):
 ######################################################################
 wrapper = PDDWrapper(inputs)
 
-#dolfin.plot(a)
-#plt.show()
-
-#from model.support.expressions import *
-#dolfin.plot(Constant(1.0) - logistic(a-b, y0=Constant(1.)))
-#plt.show()
-
 # Bed
 B = wrapper.original_cg_functions['B'].vector().get_local()[::-1]
 # Domain length
@@ -85,41 +65,17 @@ domain_len = wrapper.domain_len
 # Mesh coordinates
 x = wrapper.mesh_coords
 # Run the model 
-for i in range(250):
-    print(i)
+for i in range(50):
     wrapper.step()
-
-#dolfin.plot(wrapper.model.adot)
-#plt.show()
-#quit()
-# Ice thickness
-H_c = wrapper.model.H0_c.vector().get_local()[::-1]
-# Water depth
-D = project(wrapper.model.D).vector().get_local()[::-1]
 # Surface
 S = wrapper.model.S0_c.vector().get_local()[::-1]
 # Glacier length
 L = float(wrapper.model.L0)
-l = project(wrapper.model.l).vector().get_local()[::-1]
-Bhat = project(wrapper.model.Bhat).vector().get_local()[::-1]
-#H_calving = project(wrapper.model.length_form.H_calving).vector().get_local()[::-1]
-tau_b_scale = project(wrapper.model.momentum_form.tau_b_scale).vector().get_local()[::-1]
-B = wrapper.original_cg_functions['B'].vector().get_local()[::-1]
 
-
-#plt.plot(H_calving, 'k')
-#plt.plot(H_calving, 'r')
-#plt.plot(10./9. * D)
-#plt.show()
-
-#quit()
-plt.plot(x * domain_len, B, 'k')
-plt.plot(x * L, Bhat, 'b')
-plt.plot(x * L, S, 'b')
-#plt.plot(x*domain_len, 0.*x, 'k--')
-#plt.plot(x * L, D, 'g--')
-#plt.plot(x * domain_len, 0.*x, 'k')
+plt.plot(x * domain_len, B)
+plt.plot(x * L, S)
 plt.show()
+
 
 
 

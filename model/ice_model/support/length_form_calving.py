@@ -25,7 +25,7 @@ class LengthForm(object):
         # Calving thickness
         #H_calving = softplus(Constant((rho_w/rho)*(1. + q))*D,
         #                     min_thickness, alpha = 0.1)
-        H_calving = Constant(30.0)
+        H_calving = Constant(50.0)
         self.H_calving = H_calving
         # Real test function
         chi = model.chi
