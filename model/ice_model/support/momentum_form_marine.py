@@ -52,6 +52,7 @@ class MomentumForm(object):
         # Load physical constants
         n = model.ice_constants['n']
         rho = model.ice_constants['rho']
+        rho_w = model.ice_constants['rho_w']
         g = model.ice_constants['g']
         A_s = model.ice_constants['A_s']
         mu = model.ice_constants['mu']
@@ -61,7 +62,7 @@ class MomentumForm(object):
 
         # Continuous thickness
         H_c = model.H_c
-        # Bed elevation
+        # Bedrock elevation
         B = model.B
         # The ice base
         Bhat = model.Bhat
@@ -77,12 +78,24 @@ class MomentumForm(object):
         N = model.N
         # Facet normal vector
         nhat = FacetNormal(model.mesh)
-        # Overburden pressure
-        P_0 = model.P_0
-        # Water pressure
-        P_w = model.P_w
         # Boundary measure
-
+        ds1 = model.ds1
+        # Velocity components
+        ubar = model.ubar
+        udef = model.udef
+        # Test functions
+        phibar = model.phibar
+        phidef = model.phidef
+        # Overburden pressure
+        P_0 = rho*g*H_c
+        # Water pressure
+        P_w = rho_w*g*(l-Bhat)
+        # A scaling function that reduces tau_b to 0 where ice is floating
+        tau_b_scale = Constant(1.0) - logistic(Bhat - B, k = 0.5, y0 = 20.)
+        
+        self.tau_b_scale = tau_b_scale
+        #self.thing = logistic(Bhat - B, )
+        
         # Sigma-coordinate jacobian terms
         def dsdx(s):
             return 1./H_c*(S.dx(0) - s*H_c.dx(0))
@@ -96,8 +109,8 @@ class MomentumForm(object):
 
         # Make vertical basis from ubar and udef, the depth-average and
         # deformational velocities
-        u_ = [model.ubar, model.udef]
-        phi_ = [model.phibar, model.phidef]
+        u_ = [ubar, udef]
+        phi_ = [phibar, phidef]
 
         u = VerticalBasis(u_, coef, dcoef)
         self.u = u
@@ -130,15 +143,12 @@ class MomentumForm(object):
         vi = VerticalIntegrator(points,weights)
 
         ### Basal Shear stress (linear case)
-        # A scaling function that reduces tau_b to 0 where ice is floating
-        #tau_b_scale = Constant(1.0) - 
-        tau_b = beta2*N*u(1)
+        tau_b = tau_b_scale*beta2*N*u(1)
 
         # Residual of the first order equation
         R_momentum = (- vi.intz(membrane_xx) - vi.intz(shear_xz) - phi(1)*tau_b - vi.intz(tau_dx))*L*dx
 
         # The hydrostatic boundary condition at the terminus
-        R_momentum += Constant(0.5)*(P_0*H_c - P_w*(l-B) )*nhat[0]*phibar*df.ds(1)
-        R_momentum += Constant(0.5)*rho*g*(1-(rho/rho_w))*H**2*Phi[0]*ds(1)
+        R_momentum += Constant(0.5)*(P_0*H_c - P_w*(l-Bhat) )*nhat[0]*phibar*ds1(1)
 
         self.R_momentum = R_momentum

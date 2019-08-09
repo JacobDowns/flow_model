@@ -1,40 +1,36 @@
 import numpy as np
 from dolfin import *
+from ...support.expressions import softplus
 
 class LengthForm(object):
     """
-    Set up the variational form for length, or more specically, the H(x=1)=0
-    boundary condition used to determine length.
+    Set up the variational form for length for a marine terminating 
+    glacier with a simple calving law. 
     """
-
+    
     def __init__(self, model):
 
-        # DG thickness
-        H = model.H
-        # Rate of change of H
-        dHdt = model.dHdt
-        # Ice sheet length
-        L = model.L
-        # Rate of change of L
-        dLdt = model.dLdt
+        # CG thickness
+        H_c = model.H_c
+        # Water depth
+        D = model.D
+        # Density of ice
+        rho = model.ice_constants['rho']
+        # Density of water
+        rho_w = model.ice_constants['rho_w']
+        # Min. thickness
+        min_thickness = model.ice_constants['min_thickness']
+        # Calving parameter
+        q = model.ice_constants['q']
+        # Calving thickness
+        #H_calving = softplus(Constant((rho_w/rho)*(1. + q))*D,
+        #                     min_thickness, alpha = 0.1)
+        H_calving = Constant(30.0)
+        self.H_calving = H_calving
         # Real test function
         chi = model.chi
         # Boundary measure
-        ds1 = dolfin.ds(subdomain_data = model.boundaries)
-        # SMB expression
-        adot_prime = model.adot_prime
-        # Ice stream width
-        width = model.width
-        # Spatial coordinate
-        x_spatial = SpatialCoordinate(model.mesh)
-        # Time partial of width
-        dwdt = dLdt*x_spatial[0]/L*width.dx(0)
-        # Calving velocity
-        U_calving = Constant(10.)*(H  - Constant(20.0))**2
-
-        ### Length residual
-        ### ====================================================================
-
-        #R_length = (dLdt*width*H + L*dwdt*H + L*width*(dHdt - adot_prime))*chi*dx + U_calving*width*H*chi*ds1(1)
-        R_length = dHdt*chi*ds1(1)
+        ds1 = model.ds1
+        # Length residual
+        R_length = (H_c - H_calving)*chi*ds1(1)
         self.R_length = R_length

@@ -24,3 +24,5 @@ ice_constants['min_thickness'] = 15.0
 ice_constants['sea_level'] = 0.0 #-10000.
 # Default basal traction (Pa a / m)
 ice_constants['beta2'] = 1.6e-3
+# Fraction above flotation where calving begins
+ice_constants['q'] = 0.5

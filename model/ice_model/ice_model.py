@@ -2,7 +2,7 @@ from dolfin import *
 from support.ice_constants import *
 from support.momentum_form_marine import *
 from support.mass_form import *
-from support.length_form_marine import *
+from support.length_form_calving import *
 from ..support.expressions import *
 
 parameters['form_compiler']['cpp_optimize'] = True
@@ -120,6 +120,8 @@ class IceModel(object):
         self.width = width
         # Facet function marking divide and margin boundaries
         self.boundaries = model_wrapper.boundaries
+        # Boundary measure
+        self.ds1 = dolfin.ds(subdomain_data = self.boundaries)
 
 
         ### Function initialization
@@ -134,30 +136,32 @@ class IceModel(object):
         self.assigner.assign(U, [self.zero_guess, self.zero_guess, H0_c, H0, L0])
 
 
-        ### Derived expressions
+        ### Derived expressions + Parameters
         ########################################################################
 
-        # Ice surface
-        S = B + H_c
+        # Sea level
+        sea_level = Constant(ice_constants['sea_level'])
+        # Fraction above flotation where calving begins
+        q = ice_constants['q']
+        # Water surface, or the greater of bedrock topography or zero
+        rho = ice_constants['rho']
+        rho_w = ice_constants['rho_w']
+        # Ice base
+        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.2) 
+        # Water depth
+        D = softplus(-(B - sea_level), Constant(0.))
+        # Greater of bedrock elevation or water surface
+        l = softplus(sea_level, B)
+        S = Bhat + H_c
         # Ice surface as DG function
-        S_dg = B + H
+        S_dg = Bhat + H
         # Time derivatives
         dLdt = (L - L0) / dt
         dHdt = (H - H0) / dt
         # Effective pressure
         N = Function(self.V_cg)
-        # Sea level
-        sea_level = Constant(self.ice_constants['sea_level'])
         # CG ice thickness at last time step
         self.S0_c = Function(self.V_cg)
-        # Water surface, or the greater of bedrock topography or zero
-        l = softplus(sea_level, B)
-        rho = ice_constants['rho']
-        rho_w = ice_constants['rho_w']
-        # Ice base 
-        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.2) 
-        # Water depth
-        D = softplus(-(B - sea_level), Constant(0.))
 
         self.S = S
         self.dLdt = dLdt
@@ -196,6 +200,7 @@ class IceModel(object):
 
         # Length residual
         length_form = LengthForm(self)
+        self.length_form = length_form
         R_length = length_form.R_length
 
         # Total residual
@@ -270,12 +275,16 @@ class IceModel(object):
         if 'sea_level' in params:
             self.sea_level.assign(params['sea_level'])
 
+        # Update calving parameter
+        if 'q' in params:
+            self.q.assign(params['q'])
+
         # Update model bed elevation
         self.B.assign(self.model_wrapper.input_functions['B'])
         # Update model basal traction
         self.beta2.assign(Constant(self.ice_constants['beta2']))
         # Update model surface
-        self.S0_c.assign(self.B + self.H0_c)
+        self.S0_c.assign(project(self.Bhat + self.H0_c, self.V_cg))
         # Update model width
         self.width.assign(self.model_wrapper.input_functions['width'])
    
