@@ -16,7 +16,7 @@ model_inputs['dt'] = 1./3.
 # Length of full domain
 model_inputs['domain_len'] = 450e3
 # Initial glacier length 
-model_inputs['L0'] = 200e3
+model_inputs['L0'] = 210e3
 # Along flow coordinate
 x = np.linspace(0., model_inputs['domain_len'], 450)
 
@@ -29,7 +29,7 @@ model_inputs['B'] = 1000.*(1.0 - expit((x - 250e3) / 15e3 )) - 980. #500.0 - x/2
 ######################################################################
 model_inputs['S_ref'] = np.zeros_like(x)
 indexes = x <= model_inputs['L0']
-model_inputs['S_ref'][indexes] = np.sqrt((2000.)**2*(1. - (x[indexes] / model_inputs['L0']))) - 300.
+model_inputs['S_ref'][indexes] = np.sqrt((1000.)**2*(1. - (x[indexes] / model_inputs['L0']))) - 300.
 
 
 # Correct the surface so it's not under the bed...
@@ -60,7 +60,7 @@ model_inputs['width'] = 1000.*np.ones_like(x)
 # Some monthly temp. averages (C)
 T = -10.*np.ones(12)
 # Some monthly precip. averages (m.w.e. / a)
-P = 1.5*np.ones(12)
+P = .5*np.ones(12)
 
 for i in range(12):
     model_inputs['T' + str(i)] = T[i]*np.ones_like(x)
@@ -85,7 +85,9 @@ domain_len = wrapper.domain_len
 # Mesh coordinates
 x = wrapper.mesh_coords
 # Run the model 
-for i in range(250):
+for i in range(5000):
+    #dolfin.plot(wrapper.model.adot)
+    #plt.show()
     print(i)
     wrapper.step()
 
@@ -103,22 +105,17 @@ L = float(wrapper.model.L0)
 l = project(wrapper.model.l).vector().get_local()[::-1]
 Bhat = project(wrapper.model.Bhat).vector().get_local()[::-1]
 #H_calving = project(wrapper.model.length_form.H_calving).vector().get_local()[::-1]
-tau_b_scale = project(wrapper.model.momentum_form.tau_b_scale).vector().get_local()[::-1]
+tau_b_scale = project(wrapper.model.momentum_form.tau_b_scale, wrapper.model.V_cg).vector().get_local()[::-1]
 B = wrapper.original_cg_functions['B'].vector().get_local()[::-1]
 
+plt.subplot(2,1,1)
+plt.plot(tau_b_scale, 'k')
 
-#plt.plot(H_calving, 'k')
-#plt.plot(H_calving, 'r')
-#plt.plot(10./9. * D)
-#plt.show()
-
-#quit()
+plt.subplot(2,1,2)
 plt.plot(x * domain_len, B, 'k')
 plt.plot(x * L, Bhat, 'b')
 plt.plot(x * L, S, 'b')
-#plt.plot(x*domain_len, 0.*x, 'k--')
-#plt.plot(x * L, D, 'g--')
-#plt.plot(x * domain_len, 0.*x, 'k')
+
 plt.show()
 
 
