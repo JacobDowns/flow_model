@@ -91,7 +91,7 @@ class MomentumForm(object):
         # Water pressure
         P_w = rho_w*g*(l-Bhat)
         # A scaling function that reduces tau_b to 0 where ice is floating
-        tau_b_scale = Constant(1.0) - logistic(Bhat - B, k = 0.02, y0 = 50.)
+        tau_b_scale = Constant(1.0) - logistic(Bhat - B, k = 0.06, y0 = 80.)
         
         self.tau_b_scale = tau_b_scale
         #self.thing = logistic(Bhat - B, )
