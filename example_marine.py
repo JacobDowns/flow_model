@@ -35,6 +35,7 @@ model_inputs['S_ref'][indexes] = np.sqrt((2500.)**2*(1. - (x[indexes] / model_in
 index = np.where(model_inputs['S_ref'] - model_inputs['B'] <= 15.)[0].min()
 model_inputs['S_ref'][index:] = model_inputs['B'][index:]
 
+# Plot initial geometry
 plt.plot(model_inputs['B'])
 plt.plot(model_inputs['S_ref'])
 plt.plot(np.zeros_like(model_inputs['B']))
@@ -53,8 +54,7 @@ model_inputs['width'] = 1000.*np.ones_like(x)
 
 ### Temperature and precip
 ######################################################################
-# Some monthly temp. averages (C)
-#T = -10.*np.ones(12)
+
 # Some monthly precip. averages (m.w.e. / a)
 P = .65*np.ones(12)
 chi = x / x.max()
