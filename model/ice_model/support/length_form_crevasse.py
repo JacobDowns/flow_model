@@ -1,39 +1,52 @@
 import numpy as np
 from dolfin import *
+from ...support.expressions import *
 
 class LengthForm(object):
     """
-    Set up the variational form for length for a marine terminating glacier. 
+    Set up the variational form for length using a "zero stress" 
+    calving model.
     """
     
     def __init__(self, model):
 
-        # DG thickness
-        H = model.H
+        # Depth averaged velocity
+        ubar = model.ubar
         # CG thickness
         H_c = model.H_c
+        # Glacier length
+        L = model.L
         # Bed elevation
         B = model.B
-        # Sea level
-        sea_level = model.sea_level
+        # Ice base
+        Bhat = model.Bhat
+        # Ocean depth
+        D = model.D
+        # Glen's n
+        n = model.ice_constants['n']
         # Density of ice
         rho = model.ice_constants['rho']
         # Density of water
         rho_w = model.ice_constants['rho_w']
+        # Rate factor
+        A = model.ice_constants['A']
+        # Gravitational constant
+        g = model.ice_constants['g']
         # Min. thickness
         min_thickness = model.ice_constants['min_thickness']
         # Real test function
         chi = model.chi
         # Boundary measure
         ds1 = dolfin.ds(subdomain_data = model.boundaries)
-
-        def softplus(y1,y2,alpha=1):
-            # The softplus function is a differentiable approximation
-            # to the ramp function.  Its derivative is the logistic function.
-            # Larger alpha makes a sharper transition.
-            return dolfin.Max(y1,y2) + (1./alpha)*dolfin.ln(1.+dolfin.exp(alpha*(dolfin.Min(y1,y2)-dolfin.Max(y1,y2))))
-
+        # Crevasse deptsh
+        grounded = logistic(Bhat - B, k = 0.05, y0 = 100.)
+        # Stretching rate
+        R_xx = Constant(2.*1e-16**(-1./3.))*abs(ubar.dx(0) / L + Constant(1e-16))**(1./3.)
+        crevasse_depth = (-R_xx + rho*g*H_c - rho_w*g*D) / ((rho - rho_w)*g)
+        self.crevasse_depth = softplus(Constant(min_thickness), crevasse_depth, alpha = .007)
         # Grounding line thickness
-        H_g = softplus(Constant(rho_w / rho)*(sea_level - B), min_thickness, alpha = 0.9)
+        H_g = self.crevasse_depth
+        self.H_g = H_g
+        # Length form
         R_length = (H_c - H_g)*chi*ds1(1)
         self.R_length = R_length

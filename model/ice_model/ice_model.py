@@ -2,7 +2,7 @@ from dolfin import *
 from support.ice_constants import *
 from support.momentum_form_marine import *
 from support.mass_form import *
-from support.length_form_calving import *
+from support.length_form_crevasse import *
 from ..support.expressions import *
 
 parameters['form_compiler']['cpp_optimize'] = True
@@ -149,7 +149,7 @@ class IceModel(object):
         # Ice base
         Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.2) 
         # Water depth
-        D = softplus(-(B - sea_level), Constant(0.))
+        D = softplus(-(Bhat - sea_level), Constant(0.))
         # Greater of bedrock elevation or water surface
         l = softplus(sea_level, B)
         S = Bhat + H_c
