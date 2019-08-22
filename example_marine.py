@@ -69,13 +69,6 @@ for i in range(12):
 ######################################################################
 wrapper = PDDWrapper(inputs)
 
-#dolfin.plot(a)
-#plt.show()
-
-#from model.support.expressions import *
-#dolfin.plot(Constant(1.0) - logistic(a-b, y0=Constant(1.)))
-#plt.show()
-
 # Bed
 B = wrapper.original_cg_functions['B'].vector().get_local()[::-1]
 # Domain length
@@ -87,7 +80,7 @@ for i in range(3000):
     print(i)
     wrapper.step()
 
-### Ice thickness
+### Plot stuff
 ######################################################################
 H_c = wrapper.model.H0_c.vector().get_local()[::-1]
 # Water depth
@@ -112,24 +105,6 @@ Bhat = project(wrapper.model.Bhat).vector().get_local()[::-1]
 yy = H_c * yy + Bhat
 
 
-
-
-# Piezometric head
-rho_i = 917.
-rho_w = 1000.
-g = 9.81
-
-"""
-# Zero-stress calving
-def z(H, D, e_xx):
-    #B = 2.207e-3*np.exp( (3155./(T + 273.15)) - (0.16612 / (0.24 - T)**1.17))
-    Rxx = 2.*(1e-16)**(-1./3.)*np.abs(e_xx + 1e-16)**(1./3.)
-    z = (-Rxx + rho_i*g*H - rho_w*g*D) / ((rho_i - rho_w)*g)
-    return z
-
-#plt.plot(e_xx)
-#plt.show()
-"""
 plt.plot(x * domain_len, B, 'k', lw = 2)
 plt.plot(x * L, Bhat, 'k', lw = 2)
 plt.plot(x * L, S, 'k', lw = 2)
