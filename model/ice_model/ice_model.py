@@ -2,7 +2,7 @@ from dolfin import *
 from support.ice_constants import *
 from support.momentum_form_marine import *
 from support.mass_form import *
-from support.length_form_crevasse import *
+from support.length_form_test import *
 from ..support.expressions import *
 
 parameters['form_compiler']['cpp_optimize'] = True

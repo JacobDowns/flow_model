@@ -74,6 +74,8 @@ class MomentumForm(object):
         L = model.L
         # Surface
         S = model.S
+        # Glacier width
+        width = model.width
         # Effective pressure
         N = model.N
         # Facet normal vector
