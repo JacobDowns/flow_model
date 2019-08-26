@@ -32,5 +32,8 @@ class LengthForm(object):
         # Boundary measure
         ds1 = model.ds1
         # Length residual
+
+        
+        
         R_length = (H_c - H_calving)*chi*ds1(1)
         self.R_length = R_length

@@ -127,7 +127,7 @@ class MomentumForm(object):
         
         # Longitudinal stress
         def membrane_xx(s):
-            return 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(4*(u.dx(s,0) + u.ds(s)*dsdx(s)))# + 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(2*u(s)/width*width.dx(0))
+            return 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(4*(u.dx(s,0) + u.ds(s)*dsdx(s))) + 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(2*u(s)/width*width.dx(0))
 
         # Vertical shear stress
         def shear_xz(s):

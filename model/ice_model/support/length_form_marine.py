@@ -1,5 +1,6 @@
 import numpy as np
 from dolfin import *
+from ...support.expressions import *
 
 class LengthForm(object):
     """
