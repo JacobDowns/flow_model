@@ -1,5 +1,5 @@
 from dolfin import *
-from support.ice_constants import *
+from support.ice_params import *
 from support.momentum_form_marine import *
 from support.mass_form import *
 from support.length_form_test import *
@@ -12,16 +12,24 @@ parameters['allow_extrapolation'] = True
 
 class IceModel(object):
 
-    def __init__(self, model_wrapper):
+    def __init__(self, model_wrapper, params = {}):
 
         # Model inputs object
         self.model_wrapper = model_wrapper
         # Mesh
         self.mesh = model_wrapper.mesh
         # Physical constants / parameters
-        self.ice_constants = ice_constants
+        self.ice_params = ice_params
+        self.ice_params.update(params)
+        self.ice_constants = self.ice_params['ice_constants']
         # Model time
-        self.t = float(self.model_wrapper.input_functions['t0'])
+        self.t = self.ice_params['t0']
+        # Fields that need to be loaded
+        self.fields = ['B', 'H', 'S_ref', 'width']
+        # Fields that need to be interpolated
+        self.interp_fields = ['B', 'S_ref', 'width']
+        # Load model fields
+        model_wrapper.load_fields(self.ice_params['fields'], self.fields)
         
 
         #### Function spaces
@@ -128,10 +136,10 @@ class IceModel(object):
         ########################################################################
 
         # Assign initial ice sheet length from data
-        L0.vector()[:] = model_wrapper.L_init
+        L0.vector()[:] = model_wrapper.L0
         # Initialize initial thickness
-        H0.assign(model_wrapper.input_functions['H0'])
-        H0_c.assign(model_wrapper.original_cg_functions['H0_c'])
+        H0_c.assign(model_wrapper.input_functions['H'])
+        H0.interpolate(model_wrapper.input_functions['H'])
         # Initialize guesses for unknowns
         self.assigner.assign(U, [self.zero_guess, self.zero_guess, H0_c, H0, L0])
 
@@ -229,7 +237,7 @@ class IceModel(object):
         # Variational problem
         self.problem = NonlinearVariationalProblem(R, U, bcs=[], J=J, form_compiler_parameters = ffc_options)
         # Time step
-        self.dt.assign(self.model_wrapper.dt)
+        self.dt.assign(model_wrapper.dt)
 
 
     # Step the model forward by one time step
@@ -270,6 +278,8 @@ class IceModel(object):
 
     # Update model inputs
     def update(self, params = {}):
+
+        self.model_wrapper.update_interp_fields(['B', 'width', 'S'])
 
         # Update sea level
         if 'sea_level' in params:
