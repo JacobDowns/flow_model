@@ -126,7 +126,7 @@ class ModelWrapper(object):
             # Create interpolated functions
             for field_name in self.original_cg_functions:
                 vals = project(self.input_functions[field_name]).compute_vertex_values()
-                self.interp_functions[field_name] = UnivariateSpline(x, vals, k = 4, s = 0.005)# interp1d(x, vals, kind = 'linear')
+                self.interp_functions[field_name] = interp1d(x, vals, kind = 'quadratic')
         else:
             # Length of arrays
             N = len(model_inputs['B'])
@@ -134,7 +134,7 @@ class ModelWrapper(object):
             x = np.linspace(0., 1., N)
             # Create interpolated functions
             for field_name in self.original_cg_functions:
-                self.interp_functions[field_name] = interp1d(x,  model_inputs[field_name], kind = 'quadratic')#UnivariateSpline(x, model_inputs[field_name], k = 3, s =  0.005)
+                self.interp_functions[field_name] = interp1d(x,  model_inputs[field_name], kind = 'quadratic')
 
 
         ### Initial state
