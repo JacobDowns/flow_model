@@ -2,9 +2,8 @@ from dolfin import *
 from support.ice_params import *
 from support.momentum_form_marine import *
 from support.mass_form import *
-from support.length_form_fixed import *
+from support.length_form_test import *
 from ..support.expressions import *
-import matplotlib.pyplot as plt
 
 parameters['form_compiler']['cpp_optimize'] = True
 parameters["form_compiler"]["representation"] = "uflacs"
@@ -21,22 +20,7 @@ class IceModel(object):
         self.mesh = model_wrapper.mesh
         # Physical constants / parameters
         self.ice_params = ice_params
-
-        import collections
-        def update(d, u):
-            for k, v in u.iteritems():
-                if isinstance(d, collections.Mapping):
-                    if isinstance(v, collections.Mapping):
-                        r = update(d.get(k, {}), v)
-                        d[k] = r
-                    else:
-                        d[k] = u[k]
-                else:
-                    d = {k: u[k]}
-            return d
-
-        update(self.ice_params, params)
-        
+        self.ice_params.update(params)
         self.ice_constants = self.ice_params['ice_constants']
         # Model time
         self.t = self.ice_params['t0']
@@ -171,12 +155,11 @@ class IceModel(object):
         rho = ice_constants['rho']
         rho_w = ice_constants['rho_w']
         # Ice base
-        Bhat = softplus(B,-rho/rho_w*H_c,alpha=.2) 
+        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.2) 
         # Water depth
-        D = softplus(-(Bhat - sea_level), Constant(0.), alpha=1.)
-        #D = -(-Bhat - sea_level)
+        D = softplus(-(Bhat - sea_level), Constant(0.))
         # Greater of bedrock elevation or water surface
-        l = softplus(sea_level, B, alpha=1.)
+        l = softplus(sea_level, B)
         S = Bhat + H_c
         # Ice surface as DG function
         S_dg = Bhat + H
@@ -189,7 +172,6 @@ class IceModel(object):
         self.S0_c = Function(self.V_cg)
 
         self.S = S
-        self.S_dg = S_dg
         self.dLdt = dLdt
         self.dHdt = dHdt
         self.dt = dt
@@ -260,10 +242,6 @@ class IceModel(object):
 
     # Step the model forward by one time step
     def step(self, accept = True):
-
-        #print(self.H0.vector().array())
-        #plt.show()
-        #quit()
         
         ### Solve
         ####################################################################
@@ -279,7 +257,7 @@ class IceModel(object):
             solver.parameters.update(self.snes_params)
             solver.parameters['newton_solver']['error_on_nonconvergence'] = False
             solver.parameters['newton_solver']['relaxation_parameter'] = 0.85
-            solver.parameters['newton_solver']['report'] = True
+            solver.parameters['newton_solver']['report'] = False
             solver.solve()
 
         # Update previous solutions
@@ -300,8 +278,6 @@ class IceModel(object):
 
     # Update model inputs
     def update(self, params = {}):
-
-        self.model_wrapper.update_interp_fields(['B', 'width', 'S_ref'], float(self.L0))
 
         # Update sea level
         if 'sea_level' in params:

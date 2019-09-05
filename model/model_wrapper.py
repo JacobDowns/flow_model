@@ -2,6 +2,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 from dolfin import *
 from ice_model.ice_model import IceModel
+from hydro_model.hydro_model import HydroModel
+import matplotlib.pyplot as plt
+
+set_log_level(40)
 
 class ModelWrapper(object):
 
@@ -19,7 +23,7 @@ class ModelWrapper(object):
         # Normalize so that coordinates go from 0 to 1
         self.mesh_coords /= self.mesh_coords.max()
         # Along flow length coordinate for inputs
-        self.x = inputs['x']
+        self.x = inputs['x'] 
         # Domain length
         self.domain_len = self.x.max()
         # Initial glacier length
@@ -40,7 +44,7 @@ class ModelWrapper(object):
         
         self.input_functions = {}
         self.interp_functions = {}
-
+        
 
         ### Create boundary facet function
         ########################################################################
@@ -50,10 +54,10 @@ class ModelWrapper(object):
         for f in facets(self.mesh):
             if near(f.midpoint().x(), 1):
                 # Terminus
-               self.boundaries[f] = 1
+               self.boundaries[f] = 2
             if near(f.midpoint().x(), 0):
                 # Divide
-               self.boundaries[f] = 2
+               self.boundaries[f] = 1
 
                
         ### Ice model 
@@ -64,19 +68,30 @@ class ModelWrapper(object):
         self.ice_model = IceModel(self, ice_params)
 
 
+        ### Hydrology model 
+        ########################################################
+
+        # Create ice model
+        hydro_params = {}
+        if 'hydro_params' in inputs:
+            hydro_params = inputs['ice_params']
+    
+        self.hydro_model = HydroModel(self, hydro_params)
+
+
         ### Make sure everything is initialized
         ########################################################
-        
+
         self.update_inputs(self.L0, {})
-        
 
 
     # Load fields
     def load_fields(self, inputs, fields):
         for field_name in fields:
             self.input_functions[field_name] = Function(self.V_cg)
-            self.interp_functions[field_name] = interp1d(self.x, inputs[field_name], kind = 'quadratic')
+            self.interp_functions[field_name] = interp1d(self.x / self.x.max(), inputs[field_name], kind = 'quadratic')
 
+        self.update_interp_fields(fields, self.L0)
             
     # Update only the given fields
     def update_interp_fields(self, field_names, L):
@@ -86,6 +101,10 @@ class ModelWrapper(object):
             self.input_functions[field_name].vector()[:] = \
              np.ascontiguousarray(self.interp_functions[field_name](self.mesh_coords * frac)[::-1])
 
+    # Update all fields
+    def update_interp_all(self, L):
+        self.update_interp_fields(self.input_functions.keys(), L)
+        
 
     # Get value of interpolated field at a point
     def get_interp_value(self, field_name, x):
@@ -99,14 +118,33 @@ class ModelWrapper(object):
         # Update length dependent fields
         self.update_interp_all(L)
 
+        ### Update ice model inputs
+        ########################################################
+
         # Ice model parameters
         ice_params = {}
         if 'ice_params' in params:
             ice_params = params['ice_params']
-                
-
-        ### Update ice model inputs
-        ########################################################
-        
         # Update model inputs like sea level
-        self.model.update(ice_params)
+        self.ice_model.update(ice_params)
+
+        ### Update hydrology model inputs
+        ########################################################
+
+        # Ice model parameters
+        hydro_params = {}
+        if 'hydro_params' in params:
+            hydro_params = params['ice_params']
+        # Update model inputs like sea level
+        self.hydro_model.update(hydro_params)
+
+
+    # Step the model forward by one time step
+    def step(self, params = {}):
+        # Update the model inputs
+        self.update_inputs(float(self.ice_model.L0), params)
+        # Get step
+        step_params = {}
+        if 'step_params' in params:
+            step_params = params['step_params']
+        L = self.ice_model.step()

@@ -19,14 +19,14 @@ class HydroModel(object):
 
     def update(self, params = {}):
         # Ice density
-        rho = self.model_wrapper.model.ice_constants['rho']
+        rho = self.model_wrapper.ice_model.ice_constants['rho']
         # Gravitational constant
-        g = self.model_wrapper.model.ice_constants['g']
+        g = self.model_wrapper.ice_model.ice_constants['g']
         # Overburden fraction
         P_frac = self.hydro_params['P_frac']
         # Ice thickness
-        H_vec = self.model_wrapper.model.H0_c.vector().get_local()
+        H_vec = self.model_wrapper.ice_model.H0_c.vector().get_local()
         # Overburden pressure
         P_0 = rho*g*H_vec
         # Set the effective pressure
-        self.model_wrapper.model.N.vector()[:] = (1. - P_frac)*P_0
+        self.model_wrapper.ice_model.N.vector()[:] = (1. - P_frac)*P_0
