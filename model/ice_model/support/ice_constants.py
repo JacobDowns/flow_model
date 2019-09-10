@@ -25,7 +25,7 @@ ice_constants['min_thickness'] = 15.0
 # Sea level (m)
 ice_constants['sea_level'] = 0.0 #-10000.
 # Default basal traction (Pa a / m)
-ice_constants['beta2'] = 1.6e-3
+ice_constants['beta2'] = 1.2e-3
 # Fraction above f lotation where calving begins
 ice_constants['q'] = 0.15
 # Ice shelf rate factor
