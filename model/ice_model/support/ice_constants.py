@@ -23,7 +23,7 @@ ice_constants['A_s'] = Constant(ice_constants['rho']*ice_constants['g']*315.0/50
 # Minimum thickness (m)
 ice_constants['min_thickness'] = 15.0
 # Sea level (m)
-ice_constants['sea_level'] = 0.0 #-10000.
+ice_constants['sea_level'] = -10000.
 # Default basal traction (Pa a / m)
 ice_constants['beta2'] = 1.2e-3
 # Fraction above f lotation where calving begins

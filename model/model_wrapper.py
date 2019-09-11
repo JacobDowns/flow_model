@@ -3,7 +3,9 @@ from scipy.interpolate import interp1d
 from dolfin import *
 from ice_model.ice_model import IceModel
 from hydro_model.hydro_model import HydroModel
+from smb_model.smb_model import SMBModel
 import matplotlib.pyplot as plt
+import copy
 
 set_log_level(40)
 
@@ -52,10 +54,10 @@ class ModelWrapper(object):
         self.boundaries = MeshFunction('size_t', self.mesh, self.mesh.topology().dim() - 1, 0)
 
         for f in facets(self.mesh):
-            if near(f.midpoint().x(), 1):
+            if near(f.midpoint().x(), 0):
                 # Terminus
                self.boundaries[f] = 2
-            if near(f.midpoint().x(), 0):
+            if near(f.midpoint().x(), 1):
                 # Divide
                self.boundaries[f] = 1
 
@@ -79,6 +81,17 @@ class ModelWrapper(object):
         self.hydro_model = HydroModel(self, hydro_params)
 
 
+        ### SMB model 
+        ########################################################
+
+        # Create smb model
+        hydro_params = {}
+        if 'smb_params' in inputs:
+            smb_params = inputs['smb_params']
+    
+        self.smb_model = SMBModel(self, smb_params)
+
+
         ### Make sure everything is initialized
         ########################################################
 
@@ -92,7 +105,8 @@ class ModelWrapper(object):
             self.interp_functions[field_name] = interp1d(self.x / self.x.max(), inputs[field_name], kind = 'quadratic')
 
         self.update_interp_fields(fields, self.L0)
-            
+
+        
     # Update only the given fields
     def update_interp_fields(self, field_names, L):
         frac = L / self.domain_len
@@ -101,6 +115,7 @@ class ModelWrapper(object):
             self.input_functions[field_name].vector()[:] = \
              np.ascontiguousarray(self.interp_functions[field_name](self.mesh_coords * frac)[::-1])
 
+            
     # Update all fields
     def update_interp_all(self, L):
         self.update_interp_fields(self.input_functions.keys(), L)
@@ -114,6 +129,7 @@ class ModelWrapper(object):
 
     # Assign model input functions
     def update_inputs(self, L, params):
+
  
         # Update length dependent fields
         self.update_interp_all(L)
@@ -135,16 +151,48 @@ class ModelWrapper(object):
         hydro_params = {}
         if 'hydro_params' in params:
             hydro_params = params['ice_params']
-        # Update model inputs like sea level
         self.hydro_model.update(hydro_params)
+
+        
+        ### Update SMB model inputs
+        ########################################################
+
+        # SMB model parameters
+        smb_params = {}
+        if 'smb_params' in params:
+            smb_params = params['smb_params']
+        self.smb_model.update(smb_params)
 
 
     # Step the model forward by one time step
-    def step(self, params = {}):
+    def step(self, params = {}, accept = True):
         # Update the model inputs
         self.update_inputs(float(self.ice_model.L0), params)
-        # Get step
-        step_params = {}
-        if 'step_params' in params:
-            step_params = params['step_params']
-        L = self.ice_model.step()
+        L = self.ice_model.step(accept)
+        return L
+
+
+    # Get the model state so that it can be saved
+    def get_state(self):
+
+        # Pop the mesh, otherwise we can't deep copy the inputs dictionary
+        mesh = self.inputs.pop('mesh', None)
+        state = copy.deepcopy(self.inputs)
+        self.inputs['mesh'] = mesh
+        
+        # Interpolate the thickness
+        H_interp = interp1d(self.mesh_coords*float(self.ice_model.L0), self.ice_model.H0_c.compute_vertex_values())
+        H = np.zeros_like(state['x'])
+        
+        # Evaluate the thickness on the original input grid
+        indexes = state['x'] < float(self.ice_model.L0)
+        H[indexes] = H_interp(state['x'][indexes])
+        state['ice_params']['H'] = H
+
+        # Current time
+        state['t0'] = self.ice_model.t
+        state['L0'] = float(self.ice_model.L0)
+        state.pop('dt', None)
+        
+        return state
+        

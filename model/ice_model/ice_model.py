@@ -1,8 +1,8 @@
 from dolfin import *
 from support.ice_params import *
-from support.momentum_form_marine import *
+from support.momentum_form import *
 from support.mass_form import *
-from support.length_form_fixed import *
+from support.length_form_land import *
 from ..support.expressions import *
 import matplotlib.pyplot as plt
 
@@ -165,8 +165,6 @@ class IceModel(object):
 
         # Sea level
         sea_level = Constant(ice_constants['sea_level'])
-        # Fraction above flotation where calving begins
-        q = ice_constants['q']
         # Water surface, or the greater of bedrock topography or zero
         rho = ice_constants['rho']
         rho_w = ice_constants['rho_w']
@@ -260,10 +258,6 @@ class IceModel(object):
 
     # Step the model forward by one time step
     def step(self, accept = True):
-
-        #print(self.H0.vector().array())
-        #plt.show()
-        #quit()
         
         ### Solve
         ####################################################################

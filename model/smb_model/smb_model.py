@@ -1,22 +1,22 @@
 import numpy as np
 from dolfin import *
 from pdd_calculator import PDDCalculator
-from pdd_params import pdd_params
+from smb_params import smb_params
 import matplotlib.pyplot as plt
 
 """
 Positive degree day model. Computes a surface mass balance function adot. 
 """
 
-class PDDModel(object):
+class SMBModel(object):
 
     def __init__(self, model_wrapper, params= {}):
 
         self.model_wrapper = model_wrapper
 
         # PDD model parameters
-        self.pdd_params = pdd_params
-        self.pdd_params.update(params)
+        self.smb_params = smb_params
+        self.smb_params.update(params)
         # Surface mass blance function
         self.adot = Function(self.model_wrapper.V_cg)
         # Precipitation for the given year (for plotting) in m/a
@@ -24,7 +24,13 @@ class PDDModel(object):
         # Temperature for the given year (for plotting) in C
         self.temp = Function(self.model_wrapper.V_cg)
         # Object for calculating PDD's
-        self.pdd_calc = PDDCalculator(self.pdd_params['pdd_var'])
+        self.pdd_calc = PDDCalculator(self.smb_params['pdd_var'])
+        
+        # Fields that need to be loaded
+        self.fields = ['P' + str(i) for i in range(12)]
+        self.fields += ['T' + str(i) for i in range(12)]
+        # Load model fields
+        model_wrapper.load_fields(self.smb_params['fields'], self.fields)
         
 
     """
@@ -32,34 +38,36 @@ class PDDModel(object):
     """
     def update(self, params):
 
-        ### Temperature, precipitation, and other parameters to use for the PDD model
-        ########################################################################
+        ### Temperature, precipitation, and other parameters to use for
+        ### the PDD model
+        ##############################################################
 
-        self.pdd_params.update(params)
+        self.smb_params.update(params)
+        #self.model_wrapper.update_interp_fields(self.fields, float(self.model_wrapper.model.L0))
 
         # Monthly temperature anomalies (C)
-        monthly_dts = self.pdd_params['monthly_dts']
+        monthly_dts = self.smb_params['monthly_dts']
         # Monthly precipitation anomalies (m.w.e. / a)
-        monthly_dps = self.pdd_params['monthly_dps']
+        monthly_dps = self.smb_params['monthly_dps']
         # Elevation lapse rate (degrees C / km)
-        lapse_rate = self.pdd_params['lapse_rate']
+        lapse_rate = self.smb_params['lapse_rate']
         # Ablation rate for ice (m.w.e / PDD) 
-        lambda_ice = self.pdd_params['lambda_ice']
+        lambda_ice = self.smb_params['lambda_ice']
         # Ablation rate for snow (m.w.e. / (degree C * day))
-        lambda_snow = self.pdd_params['lambda_snow']
+        lambda_snow = self.smb_params['lambda_snow']
         # Ablation rate for ice (m.w.e. / (degree C * day))
-        lambda_precip = self.pdd_params['lambda_precip']
+        lambda_precip = self.smb_params['lambda_precip']
         # Superimposed ice fraction
-        super_ice_frac = self.pdd_params['super_ice_frac']
+        super_ice_frac = self.smb_params['super_ice_frac']
 
         
         ### Compute monthly PDD's and precip.
-        ########################################################################
+        ##############################################################
         
         # Get the reference elevation used by climate model
         ref_elevation_vec = self.model_wrapper.input_functions['S_ref'].vector().get_local()
         # Get the modeled elevation
-        modeled_elevation_vec = self.model_wrapper.model.S0_c.vector().get_local()
+        modeled_elevation_vec = self.model_wrapper.ice_model.S0_c.vector().get_local()
         # Compute the lapse rate correction in C
         lapse_correction = ((ref_elevation_vec - modeled_elevation_vec) / 1000.0) * lapse_rate
         # Total snow that has fallen for the year
@@ -82,6 +90,7 @@ class PDDModel(object):
             snowfall_frac = self.pdd_calc.get_acc_frac(temp_vec)    
             # Compute snowfall for the month in m.w.e
             total_snowfall += precip_vec * (1./12.) * snowfall_frac
+
 
         # Save total snowfall for plotting
         self.precip_func.vector()[:] = total_snowfall
@@ -120,4 +129,4 @@ class PDDModel(object):
         # Total yearly mass balance in m.i.e. assuming snowpack turns to ice at end of year
         smb = (accumulation - ablation) * (10./9.)
 
-        self.model_wrapper.model.adot.vector()[:] = smb
+        self.model_wrapper.ice_model.adot.vector()[:] = smb
