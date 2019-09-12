@@ -295,15 +295,9 @@ class IceModel(object):
     # Update model inputs
     def update(self, params = {}):
 
-        self.model_wrapper.update_interp_fields(['B', 'width', 'S_ref'], float(self.L0))
-
         # Update sea level
         if 'sea_level' in params:
             self.sea_level.assign(params['sea_level'])
-
-        # Update calving parameter
-        if 'q' in params:
-            self.q.assign(params['q'])
 
         # Update model bed elevation
         self.B.assign(self.model_wrapper.input_functions['B'])

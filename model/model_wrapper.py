@@ -32,6 +32,12 @@ class ModelWrapper(object):
         self.L0 = inputs['L0']
         # Time step
         self.dt = inputs['dt']
+        # Start age
+        self.start_age = 0.
+        if 'start_age' in inputs:
+            self.start_age = inputs['start_age']
+        # Age
+        self.age = self.start_age + inputs['t0']
     
             
         #### Function spaces
@@ -95,44 +101,35 @@ class ModelWrapper(object):
         ### Make sure everything is initialized
         ########################################################
 
-        self.update_inputs(self.L0, {})
+        self.update_inputs(self.L0, self.age, {})
 
 
     # Load fields
     def load_fields(self, inputs, fields):
         for field_name in fields:
             self.input_functions[field_name] = Function(self.V_cg)
-            self.interp_functions[field_name] = interp1d(self.x / self.x.max(), inputs[field_name], kind = 'quadratic')
+            self.interp_functions[field_name] = inputs[field_name]
 
-        self.update_interp_fields(fields, self.L0)
+        self.update_interp_fields(fields, self.L0, self.age)
 
         
     # Update only the given fields
-    def update_interp_fields(self, field_names, L):
-        frac = L / self.domain_len
-
+    def update_interp_fields(self, field_names, L, t):
         for field_name in field_names:
             self.input_functions[field_name].vector()[:] = \
-             np.ascontiguousarray(self.interp_functions[field_name](self.mesh_coords * frac)[::-1])
+             np.ascontiguousarray(self.interp_functions[field_name](self.mesh_coords * L, t)[::-1])
 
             
     # Update all fields
-    def update_interp_all(self, L):
-        self.update_interp_fields(self.input_functions.keys(), L)
+    def update_interp_all(self, L, t):
+        self.update_interp_fields(self.input_functions.keys(), L, t)
         
 
-    # Get value of interpolated field at a point
-    def get_interp_value(self, field_name, x):
-        frac = x / self.domain_len
-        return self.interp_functions[field_name](frac)
-
-
     # Assign model input functions
-    def update_inputs(self, L, params):
-
+    def update_inputs(self, L, t, params):
  
         # Update length dependent fields
-        self.update_interp_all(L)
+        self.update_interp_all(L, t)
 
         ### Update ice model inputs
         ########################################################
@@ -167,7 +164,7 @@ class ModelWrapper(object):
     # Step the model forward by one time step
     def step(self, params = {}, accept = True):
         # Update the model inputs
-        self.update_inputs(float(self.ice_model.L0), params)
+        self.update_inputs(float(self.ice_model.L0), self.age, params)
         L = self.ice_model.step(accept)
         return L
 

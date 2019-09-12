@@ -25,6 +25,8 @@ class SMBModel(object):
         self.temp = Function(self.model_wrapper.V_cg)
         # Object for calculating PDD's
         self.pdd_calc = PDDCalculator(self.smb_params['pdd_var'])
+        # Temperature anomaly
+        self.temp_anomaly = self.smb_params['delta_T']
         
         # Fields that need to be loaded
         self.fields = ['P' + str(i) for i in range(12)]
