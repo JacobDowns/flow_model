@@ -1,6 +1,7 @@
 from dolfin import Constant
+from util.custom_dict import CustomDict
 
-ice_constants = {}
+ice_constants = CustomDict()
 # Seconds per year
 ice_constants['spy'] = 60**2*24*365
 # Ice density (kg / m^3)

@@ -1,6 +1,6 @@
 import numpy as np
 from dolfin import *
-from ...support.expressions import softplus
+from model.support.expressions import softplus
 
 class LengthForm(object):
     """

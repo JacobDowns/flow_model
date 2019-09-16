@@ -3,7 +3,7 @@ from support.ice_params import *
 from support.momentum_form import *
 from support.mass_form import *
 from support.length_form_land import *
-from ..support.expressions import *
+from model.support.expressions import *
 import matplotlib.pyplot as plt
 
 parameters['form_compiler']['cpp_optimize'] = True
@@ -21,21 +21,8 @@ class IceModel(object):
         self.mesh = model_wrapper.mesh
         # Physical constants / parameters
         self.ice_params = ice_params
+        self.ice_params.update(params)
 
-        import collections
-        def update(d, u):
-            for k, v in u.iteritems():
-                if isinstance(d, collections.Mapping):
-                    if isinstance(v, collections.Mapping):
-                        r = update(d.get(k, {}), v)
-                        d[k] = r
-                    else:
-                        d[k] = u[k]
-                else:
-                    d = {k: u[k]}
-            return d
-
-        update(self.ice_params, params)
         
         self.ice_constants = self.ice_params['ice_constants']
         # Model time

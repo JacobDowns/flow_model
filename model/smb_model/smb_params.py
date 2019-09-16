@@ -1,6 +1,7 @@
 import numpy as np
+from util.custom_dict import CustomDict
 
-smb_params = {}
+smb_params = CustomDict()
 # PDD model variance 
 smb_params['pdd_var'] = 5.5
 # Ablation rate for snow (m / (degree C * day))

@@ -1,11 +1,11 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from dolfin import *
-from ice_model.ice_model import IceModel
-from hydro_model.hydro_model import HydroModel
-from smb_model.smb_model import SMBModel
 import matplotlib.pyplot as plt
 import copy
+from model.ice_model.ice_model import IceModel
+from model.hydro_model.hydro_model import HydroModel
+from model.smb_model.smb_model import SMBModel
 
 set_log_level(40)
 
@@ -127,6 +127,8 @@ class ModelWrapper(object):
 
     # Assign model input functions
     def update_inputs(self, L, t, params):
+
+        print(L, t)
  
         # Update length dependent fields
         self.update_interp_all(L, t)
@@ -162,10 +164,14 @@ class ModelWrapper(object):
 
 
     # Step the model forward by one time step
-    def step(self, params = {}, accept = True):
+    def step(self, params = {}, accept = True, steady = False):
         # Update the model inputs
         self.update_inputs(float(self.ice_model.L0), self.age, params)
         L = self.ice_model.step(accept)
+
+        if not steady:
+            self.age += self.dt
+            
         return L
 
 
@@ -184,7 +190,7 @@ class ModelWrapper(object):
         # Evaluate the thickness on the original input grid
         indexes = state['x'] < float(self.ice_model.L0)
         H[indexes] = H_interp(state['x'][indexes])
-        state['ice_params']['H'] = H
+        state['ice_params']['H'] = self.__get_static_func__(interp1d(state['x'], H))
 
         # Current time
         state['t0'] = self.ice_model.t
@@ -192,4 +198,9 @@ class ModelWrapper(object):
         state.pop('dt', None)
         
         return state
-        
+
+    
+    # Wrap a non-time dependent function to be "time depdendent"
+    def __get_static_func__(self, f):
+        return lambda x, t : f(x)
+
