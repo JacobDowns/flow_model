@@ -127,8 +127,6 @@ class ModelWrapper(object):
 
     # Assign model input functions
     def update_inputs(self, L, t, params):
-
-        print(L, t)
  
         # Update length dependent fields
         self.update_interp_all(L, t)
@@ -183,15 +181,10 @@ class ModelWrapper(object):
         state = copy.deepcopy(self.inputs)
         self.inputs['mesh'] = mesh
         
-        # Interpolate the thickness
-        H_interp = interp1d(self.mesh_coords*float(self.ice_model.L0), self.ice_model.H0_c.compute_vertex_values())
-        H = np.zeros_like(state['x'])
-        
         # Evaluate the thickness on the original input grid
-        indexes = state['x'] < float(self.ice_model.L0)
-        H[indexes] = H_interp(state['x'][indexes])
-        state['ice_params']['H'] = self.__get_static_func__(interp1d(state['x'], H))
-
+        H = self.ice_model.H0_c.vector().get_local()[::-1]
+        state['ice_params']['fields']['H'] = self.__get_static_func__(lambda x : H)
+        
         # Current time
         state['t0'] = self.ice_model.t
         state['L0'] = float(self.ice_model.L0)

@@ -44,6 +44,7 @@ class SMBModel(object):
         ### the PDD model
         ##############################################################
 
+        
         self.smb_params.update(params)
         #self.model_wrapper.update_interp_fields(self.fields, float(self.model_wrapper.model.L0))
 
