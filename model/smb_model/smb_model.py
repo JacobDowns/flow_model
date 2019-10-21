@@ -19,20 +19,24 @@ class SMBModel(object):
         self.smb_params.update(params)
         # Surface mass blance function
         self.adot = Function(self.model_wrapper.V_cg)
-        # Precipitation for the given year (for plotting) in m/a
-        self.precip_func = Function(self.model_wrapper.V_cg)
+        # Solid precip. for the given year (for plotting) in m/a
+        self.snowfall_func = Function(self.model_wrapper.V_cg)
+        # Liquid precip. for the given year (for plotting) in m/a
+        self.rainfall_func = Function(self.model_wrapper.V_cg)
         # Temperature for the given year (for plotting) in C
         self.temp = Function(self.model_wrapper.V_cg)
         # Object for calculating PDD's
         self.pdd_calc = PDDCalculator(self.smb_params['pdd_var'])
         # Temperature anomaly
         self.temp_anomaly = self.smb_params['delta_T']
-        
+
         # Fields that need to be loaded
         self.fields = ['P' + str(i) for i in range(12)]
         self.fields += ['T' + str(i) for i in range(12)]
         # Load model fields
         model_wrapper.load_fields(self.smb_params['fields'], self.fields)
+
+        
         
 
     """
@@ -70,11 +74,13 @@ class SMBModel(object):
         # Get the reference elevation used by climate model
         ref_elevation_vec = self.model_wrapper.input_functions['S_ref'].vector().get_local()
         # Get the modeled elevation
-        modeled_elevation_vec = self.model_wrapper.ice_model.S0_c.vector().get_local()
+        modeled_elevation_vec = self.model_wrapper.ice_model.S0_c.vector().get_local()        
         # Compute the lapse rate correction in C
         lapse_correction = ((ref_elevation_vec - modeled_elevation_vec) / 1000.0) * lapse_rate
         # Total snow that has fallen for the year
         total_snowfall = np.zeros_like(self.model_wrapper.input_functions['S_ref'].vector().get_local())
+         # Total rain that has fallen for the year
+        total_rainfall = np.zeros_like(self.model_wrapper.input_functions['S_ref'].vector().get_local())
         # Total number of pdds for the year
         total_pdds = np.zeros_like(self.model_wrapper.input_functions['S_ref'].vector().get_local())
         
@@ -93,11 +99,13 @@ class SMBModel(object):
             snowfall_frac = self.pdd_calc.get_acc_frac(temp_vec)    
             # Compute snowfall for the month in m.w.e
             total_snowfall += precip_vec * (1./12.) * snowfall_frac
+            # Compute rainfall for the month in m.w.e
+            total_rainfall += precip_vec * (1./12.) * (1. - snowfall_frac)
 
 
-        # Save total snowfall for plotting
-        self.precip_func.vector()[:] = total_snowfall
-
+        # Save total snowfall / rainfall for plotting
+        self.snowfall_func.vector()[:] = total_snowfall
+        self.rainfall_func.vector()[:] = total_rainfall
 
         ### Compute SMB from total snowfall and pdds
         ########################################################################

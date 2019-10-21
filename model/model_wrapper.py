@@ -37,7 +37,7 @@ class ModelWrapper(object):
         if 'start_age' in inputs:
             self.start_age = inputs['start_age']
         # Age
-        self.age = self.start_age + inputs['t0']
+        self.age = self.start_age# + inputs['t0']
     
             
         #### Function spaces
@@ -127,7 +127,7 @@ class ModelWrapper(object):
 
     # Assign model input functions
     def update_inputs(self, L, t, params):
- 
+
         # Update length dependent fields
         self.update_interp_all(L, t)
 
