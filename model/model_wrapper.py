@@ -7,7 +7,7 @@ from model.ice_model.ice_model import IceModel
 from model.hydro_model.hydro_model import HydroModel
 from model.smb_model.smb_model import SMBModel
 
-set_log_level(40)
+#set_log_level(40)
 
 class ModelWrapper(object):
 

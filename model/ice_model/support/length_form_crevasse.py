@@ -34,19 +34,23 @@ class LengthForm(object):
         g = model.ice_constants['g']
         # Min. thickness
         min_thickness = model.ice_constants['min_thickness']
+        # Domain length
+        domain_len = model.domain_len
         # Real test function
         chi = model.chi
         # Boundary measure
         ds1 = dolfin.ds(subdomain_data = model.boundaries)
-        # Crevasse deptsh
-        grounded = logistic(Bhat - B, k = 0.05, y0 = 100.)
+        # Boundary calving (to prevent ice from flowing out of the domain)
+        self.extra_calving = model.model_wrapper.input_functions['extra_calving']
+        
+        # Crevasse depth
+        grounded = logistic(Bhat - B, k = .25, y0 = 25.)
+        self.grounded = grounded 
         # Stretching rate
-        R_xx = Constant(2.*1e-16**(-1./3.))*abs(ubar.dx(0) / L + Constant(1e-16))**(1./3.)
-        crevasse_depth = (-R_xx + rho*g*H_c - rho_w*g*D) / ((rho - rho_w)*g)
-        self.crevasse_depth = softplus(Constant(min_thickness), crevasse_depth, alpha = .007)
-        # Grounding line thickness
-        H_g = self.crevasse_depth
-        self.H_g = H_g
+        R_xx = Constant(1e-16**(-1./3.))*abs(ubar.dx(0) / L + Constant(1e-16))**(1./3.)
+        crevasse_depth = (-R_xx + rho*g*H_c - rho_w*g*D) / ((rho - rho_w)*g)*grounded
+        #self.crevasse_depth = crevasse_depth
+        self.crevasse_depth = Max(Constant(min_thickness), crevasse_depth) + self.extra_calving
         # Length form
-        R_length = (H_c - H_g)*chi*ds1(1)
+        R_length = (H_c - self.crevasse_depth)*chi*ds1(1)
         self.R_length = R_length

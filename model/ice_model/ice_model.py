@@ -2,7 +2,8 @@ from dolfin import *
 from support.ice_params import *
 from support.momentum_form import *
 from support.mass_form import *
-from support.length_form_land import *
+from support.length_form_crevasse import LengthForm as LengthFormCrevasse
+from support.length_form_crevasse import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
 
@@ -28,9 +29,9 @@ class IceModel(object):
         # Model time
         self.t = self.ice_params['t0']
         # Fields that need to be loaded
-        self.fields = ['B', 'H', 'S_ref', 'width']
+        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving']
         # Fields that need to be interpolated
-        self.interp_fields = ['B', 'S_ref', 'width']
+        self.interp_fields = ['B', 'S_ref', 'width', 'extra_calving']
         # Load model fields
         model_wrapper.load_fields(self.ice_params['fields'], self.fields)
         
@@ -140,6 +141,7 @@ class IceModel(object):
 
         # Assign initial ice sheet length from data
         L0.vector()[:] = model_wrapper.L0
+        self.domain_len = Constant(model_wrapper.domain_len)
         # Initialize initial thickness
         H0_c.assign(model_wrapper.input_functions['H'])
         H0.interpolate(model_wrapper.input_functions['H'])
@@ -241,6 +243,8 @@ class IceModel(object):
         self.problem = NonlinearVariationalProblem(R, U, bcs=[], J=J, form_compiler_parameters = ffc_options)
         # Time step
         self.dt.assign(model_wrapper.dt)
+
+        self.crevasse = LengthFormCrevasse(self)
 
 
     # Step the model forward by one time step
