@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/JacobDowns/flow_model",
     packages=setuptools.find_packages(),
     classifiers=[
-        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

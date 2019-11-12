@@ -3,9 +3,10 @@ from support.ice_params import *
 from support.momentum_form import *
 from support.mass_form import *
 from support.length_form_crevasse import LengthForm as LengthFormCrevasse
-from support.length_form_crevasse import *
+from support.length_form_fixed import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
+
 
 parameters['form_compiler']['cpp_optimize'] = True
 parameters["form_compiler"]["representation"] = "uflacs"
@@ -29,9 +30,7 @@ class IceModel(object):
         # Model time
         self.t = self.ice_params['t0']
         # Fields that need to be loaded
-        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving']
-        # Fields that need to be interpolated
-        self.interp_fields = ['B', 'S_ref', 'width', 'extra_calving']
+        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2', 'vmag']
         # Load model fields
         model_wrapper.load_fields(self.ice_params['fields'], self.fields)
         
@@ -293,7 +292,7 @@ class IceModel(object):
         # Update model bed elevation
         self.B.assign(self.model_wrapper.input_functions['B'])
         # Update model basal traction
-        self.beta2.assign(Constant(self.ice_constants['beta2']))
+        self.beta2.assign(self.model_wrapper.input_functions['beta2'])
         # Update model surface
         self.S0_c.assign(project(self.Bhat + self.H0_c, self.V_cg))
         # Update model width
