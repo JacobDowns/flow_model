@@ -1,6 +1,6 @@
 import numpy as np
-from dolfin import *
-from ...support.expressions import *
+from dolfin import Constant, dx, FacetNormal
+from model.support.expressions import *
 
 ### Support Functions
 ########################################################

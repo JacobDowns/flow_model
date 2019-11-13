@@ -1,5 +1,6 @@
-import numpy as np
-from dolfin import *
+from dolfin import dx, ds, dS, avg, jump, sqrt, SpatialCoordinate, Constant
+from model.support.expressions import Abs
+import ufl as ufl
 
 class MassForm(object):
     """
@@ -21,7 +22,7 @@ class MassForm(object):
         # DG test function
         xsi = model.xsi
         # Boundary measure
-        ds1 = dolfin.ds(subdomain_data = model.boundaries)
+        ds1 = ds(subdomain_data = model.boundaries)
         # SMB
         adot = model.adot
         # Ice stream width
@@ -35,7 +36,7 @@ class MassForm(object):
         # Flux
         q_flux = q_vel*H*width
         # Inter element flux (upwind)
-        uH = avg(q_vel)*avg(H*width) + 0.5*abs(avg(width*q_vel))*jump(H)
+        uH = avg(q_vel)*avg(H*width) + 0.5*Abs(avg(width*q_vel))*jump(H)
         # Time partial of width
         dwdt = dLdt*x_spatial[0]/L*width.dx(0)
 

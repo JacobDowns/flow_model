@@ -1,5 +1,4 @@
-import numpy as np
-from dolfin import *
+from dolfin import dx
 
 class LengthForm(object):
     """

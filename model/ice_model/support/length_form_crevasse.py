@@ -1,6 +1,6 @@
-import numpy as np
-from dolfin import *
-from ...support.expressions import *
+from dolfin import ds, Constant
+from ufl import max_value
+from model.support.expressions import Abs, logistic
 
 class LengthForm(object):
     """
@@ -39,10 +39,9 @@ class LengthForm(object):
         # Real test function
         chi = model.chi
         # Boundary measure
-        ds1 = dolfin.ds(subdomain_data = model.boundaries)
+        ds1 = ds(subdomain_data = model.boundaries)
         # Boundary calving (to prevent ice from flowing out of the domain)
         self.extra_calving = model.model_wrapper.input_functions['extra_calving']
-        
         # Crevasse depth
         grounded = logistic(Bhat - B, k = .25, y0 = 25.)
         self.grounded = grounded 
@@ -50,7 +49,7 @@ class LengthForm(object):
         R_xx = Constant(1e-16**(-1./3.))*abs(ubar.dx(0) / L + Constant(1e-16))**(1./3.)
         crevasse_depth = (-R_xx + rho*g*H_c - rho_w*g*D) / ((rho - rho_w)*g)*grounded
         #self.crevasse_depth = crevasse_depth
-        self.crevasse_depth = Max(Constant(min_thickness), crevasse_depth) + self.extra_calving
+        self.crevasse_depth = max_value(Constant(min_thickness), crevasse_depth) + self.extra_calving
         # Length form
         R_length = (H_c - self.crevasse_depth)*chi*ds1(1)
         self.R_length = R_length

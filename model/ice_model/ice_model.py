@@ -1,12 +1,14 @@
-from dolfin import *
-from support.ice_params import *
-from support.momentum_form import *
-from support.mass_form import *
-from support.length_form_crevasse import LengthForm as LengthFormCrevasse
-from support.length_form_fixed import *
+from dolfin import MixedElement, FunctionSpace, FunctionAssigner, Function, \
+    TrialFunction, TestFunction, split, Constant, NonlinearVariationalProblem, \
+    ds, parameters, derivative, project, NonlinearVariationalSolver, assemble
+    
+from model.ice_model.support.ice_params import *
+from model.ice_model.support.momentum_form_marine import *
+from model.ice_model.support.mass_form import *
+#from model.ice_model.support.length_form_crevasse import LengthForm as LengthFormCrevasse
+from model.ice_model.support.length_form_crevasse import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
-
 
 parameters['form_compiler']['cpp_optimize'] = True
 parameters["form_compiler"]["representation"] = "uflacs"
@@ -23,14 +25,12 @@ class IceModel(object):
         self.mesh = model_wrapper.mesh
         # Physical constants / parameters
         self.ice_params = ice_params
-        self.ice_params.update(params)
-
-        
+        self.ice_params.update(params)        
         self.ice_constants = self.ice_params['ice_constants']
         # Model time
         self.t = self.ice_params['t0']
         # Fields that need to be loaded
-        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2', 'vmag']
+        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2']
         # Load model fields
         model_wrapper.load_fields(self.ice_params['fields'], self.fields)
         
@@ -132,7 +132,7 @@ class IceModel(object):
         # Facet function marking divide and margin boundaries
         self.boundaries = model_wrapper.boundaries
         # Boundary measure
-        self.ds1 = dolfin.ds(subdomain_data = self.boundaries)
+        self.ds1 = ds(subdomain_data = self.boundaries)
 
 
         ### Function initialization
@@ -202,6 +202,7 @@ class IceModel(object):
         momentum_form = MomentumForm(self)
         self.momentum_form = momentum_form
         R_momentum = momentum_form.R_momentum
+        self.R_momentum = R_momentum
 
         # Continuous thickness residual
         R_thickness = (H_c - H)*xsi_c*dx
@@ -209,11 +210,13 @@ class IceModel(object):
         # Mass balance residual
         mass_form = MassForm(self)
         R_mass = mass_form.R_mass
+        self.R_mass = R_mass
 
         # Length residual
         length_form = LengthForm(self)
         self.length_form = length_form
         R_length = length_form.R_length
+        self.R_length = R_length
 
         # Total residual
         R = R_momentum + R_thickness + R_mass + R_length
@@ -243,15 +246,18 @@ class IceModel(object):
         # Time step
         self.dt.assign(model_wrapper.dt)
 
-        self.crevasse = LengthFormCrevasse(self)
+        #self.crevasse = LengthFormCrevasse(self)
 
 
     # Step the model forward by one time step
     def step(self, accept = True):
+
+        #self.assigner.assign(self.U, [self.un, self.u2n, self.H0_c, self.H0, self.L0])
+        #print(np.isnan(assemble(self.R_length).get_local()).any())
+        #quit()
         
         ### Solve
         ####################################################################
-        
         try:
             self.assigner.assign(self.U, [self.un, self.u2n, self.H0_c, self.H0, self.L0])
             solver = NonlinearVariationalSolver(self.problem)

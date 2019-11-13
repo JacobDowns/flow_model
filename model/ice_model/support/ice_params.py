@@ -1,4 +1,4 @@
-from ice_constants import ice_constants
+from model.ice_model.support.ice_constants import ice_constants
 from util.custom_dict import CustomDict
 
 ice_params = CustomDict()

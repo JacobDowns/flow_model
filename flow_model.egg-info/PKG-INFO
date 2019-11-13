@@ -6,9 +6,9 @@ Home-page: https://github.com/JacobDowns/flow_model
 Author: Jacob Downs, Doug Brinkerhoff, Jesse Johnson
 Author-email: jacob.downs@umontana.edu
 License: UNKNOWN
-Description: This is a readme.
+Description: stuff
 Platform: UNKNOWN
-Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Description-Content-Type: text/markdown

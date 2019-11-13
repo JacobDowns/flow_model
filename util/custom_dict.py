@@ -6,7 +6,7 @@ A custom dictionary object with a recursive update.
 
 class CustomDict(dict):
     def update(self, u):
-        for k, v in u.iteritems():
+        for k, v in u.items():
             if isinstance(self, collections.Mapping):
                 if isinstance(v, collections.Mapping):
                     r = self.get(k, CustomDict({})).update(v)

@@ -1,6 +1,6 @@
 import numpy as np
 from dolfin import *
-from hydro_params import hydro_params
+from model.hydro_model.hydro_params import hydro_params
 import matplotlib.pyplot as plt
 
 """

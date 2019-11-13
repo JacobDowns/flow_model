@@ -1,7 +1,7 @@
 import numpy as np
 from dolfin import *
-from pdd_calculator import PDDCalculator
-from smb_params import smb_params
+from model.smb_model.pdd_calculator import PDDCalculator
+from model.smb_model.smb_params import smb_params
 import matplotlib.pyplot as plt
 
 """
@@ -140,4 +140,4 @@ class SMBModel(object):
         # Extra melt to prevent ice from flowing out of the domain
         extra_melt = self.model_wrapper.input_functions['extra_melt'].vector().get_local()
 
-        self.model_wrapper.ice_model.adot.vector()[:] = smb + extra_melt
+        self.model_wrapper.ice_model.adot.vector()[:] = 0.#smb + extra_melt

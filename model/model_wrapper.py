@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
-from dolfin import *
+from dolfin import FiniteElement, FunctionSpace, facets, set_log_level, \
+    MeshFunction, near, Function
 import matplotlib.pyplot as plt
 import copy
 from model.ice_model.ice_model import IceModel

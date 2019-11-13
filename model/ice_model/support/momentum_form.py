@@ -1,5 +1,5 @@
+from dolfin import Constant, dx, FacetNormal
 import numpy as np
-from dolfin import *
 
 ### Support Functions
 ########################################################
@@ -128,5 +128,6 @@ class MomentumForm(object):
 
         # Residual of the first order equation
         R_momentum = (- vi.intz(membrane_xx) - vi.intz(shear_xz) - phi(1)*tau_b - vi.intz(tau_dx))*L*dx
-
+        #R_momentum = u_[0]*phi_[0]*dx + u_[1]*phi_[1]*dx
+        
         self.R_momentum = R_momentum
