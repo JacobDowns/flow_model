@@ -94,7 +94,6 @@ class MomentumForm(object):
         P_w = rho_w*g*(l-Bhat)
         # A scaling function that reduces tau_b to 0 where ice is floating
         tau_b_scale = Constant(1.0) - logistic(Bhat - B, k = 0.06, y0 = 80.)
-        
         self.tau_b_scale = tau_b_scale
         #self.thing = logistic(Bhat - B, )
         
@@ -147,8 +146,11 @@ class MomentumForm(object):
         ### Basal Shear stress (linear case)
         tau_b = tau_b_scale*beta2*N*u(1)
 
+        ### Lateral drag function
+        tau_xy = 2 * H_c * b / width * ((n+2)/(width))**(1./n)*(ubar**2+0.01)**((1./n - 1)/2.)*ubar
+
         # Residual of the first order equation
-        R_momentum = (- vi.intz(membrane_xx) - vi.intz(shear_xz) - phi(1)*tau_b - vi.intz(tau_dx))*L*dx
+        R_momentum = (- vi.intz(membrane_xx) - vi.intz(shear_xz) - phi(1)*tau_b - vi.intz(tau_dx) - phibar*tau_xy)*L*dx
 
         # The hydrostatic boundary condition at the terminus
         R_momentum += Constant(0.5)*(P_0*H_c - P_w*(l-Bhat) )*nhat[0]*phibar*ds1(1)

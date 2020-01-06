@@ -6,7 +6,7 @@ from model.ice_model.support.ice_params import *
 from model.ice_model.support.momentum_form_marine import *
 from model.ice_model.support.mass_form import *
 #from model.ice_model.support.length_form_crevasse import LengthForm as LengthFormCrevasse
-from model.ice_model.support.length_form_land import *
+from model.ice_model.support.length_form_crevasse import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
 
