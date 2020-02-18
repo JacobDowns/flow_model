@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import copy
 from model.ice_model.ice_model import IceModel
 from model.hydro_model.hydro_model import HydroModel
-from model.smb_model.smb_model import SMBModel
+from model.smb_model.basic_smb_model import SMBModel
 
 set_log_level(40)
 

@@ -43,13 +43,16 @@ class LengthForm(object):
         # Boundary calving (to prevent ice from flowing out of the domain)
         self.extra_calving = model.model_wrapper.input_functions['extra_calving']
         # Crevasse depth
-        grounded = logistic(Bhat - B, k = .25, y0 = 25.)
+        grounded = logistic(Bhat - B, k = .05, y0 = 350.)
         self.grounded = grounded 
         # Stretching rate
-        R_xx = Constant(1e-16**(-1./3.))*abs(ubar.dx(0) / L + Constant(1e-16))**(1./3.)
-        crevasse_depth = (-R_xx + rho*g*H_c - rho_w*g*D) / ((rho - rho_w)*g)*grounded
+        #R_xx = Constant(5e-18**(-1./3.))*abs(ubar.dx(0) / L + Constant(1e-16))**(1./3.)
+        #crevasse_depth = (-R_xx + rho*g*H_c - rho_w*g*D) / ((rho - rho_w)*g)*grounded
+
+        crevasse_depth = 
         #self.crevasse_depth = crevasse_depth
         self.crevasse_depth = max_value(Constant(min_thickness), crevasse_depth) + self.extra_calving
+        self.crevasse_depth_new = (-R_xx + rho*g*H_c - rho_w*g*D) / ((rho - rho_w)*g)
         # Length form
         R_length = (H_c - self.crevasse_depth)*chi*ds1(1)
         self.R_length = R_length

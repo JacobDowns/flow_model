@@ -5,7 +5,7 @@ from dolfin import MixedElement, FunctionSpace, FunctionAssigner, Function, \
 from model.ice_model.support.ice_params import *
 from model.ice_model.support.momentum_form_marine import *
 from model.ice_model.support.mass_form import *
-#from model.ice_model.support.length_form_crevasse import LengthForm as LengthFormCrevasse
+from model.ice_model.support.length_form_crevasse import LengthForm as LengthFormCrevasse
 from model.ice_model.support.length_form_crevasse import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
@@ -30,7 +30,8 @@ class IceModel(object):
         # Model time
         self.t = self.ice_params['t0']
         # Fields that need to be loaded
-        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2']
+        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2',
+                       'backstress_scale', 'tau_xy_scale', 'beta2_scale']
         # Load model fields
         model_wrapper.load_fields(self.ice_params['fields'], self.fields)
         
@@ -157,9 +158,12 @@ class IceModel(object):
         rho = ice_constants['rho']
         rho_w = ice_constants['rho_w']
         # Ice base
-        Bhat = softplus(B,-rho/rho_w*H_c,alpha=.2) 
+        #Bhat = max_value(B,-rho/rho_w*H_c)
+        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.05)
+        #conditional(gt(x[0], 0.5), x[0]+x[1], Constant(0))
+        #self.Bhat_sharp = softplus(B,-rho/rho_w*H_c,alpha=10000.)
         # Water depth
-        D = softplus(-(Bhat - sea_level), Constant(0.), alpha=1.)
+        D = max_value(-(Bhat - sea_level), Constant(0.))
         #D = -(-Bhat - sea_level)
         # Greater of bedrock elevation or water surface
         l = softplus(sea_level, B, alpha=1.)
@@ -234,11 +238,11 @@ class IceModel(object):
         self.snes_params = {'nonlinear_solver': 'newton',
                       'newton_solver': {
                        'relative_tolerance' : 5e-14,
-                       'absolute_tolerance' : 9e-5,
+                       'absolute_tolerance' : 8e-5,
                        'linear_solver': 'gmres',
                        'preconditioner': 'ilu',
                        'maximum_iterations': 35,
-                       'report' : False
+                       'report' : True
                        }}
 
         # Variational problem
@@ -246,7 +250,7 @@ class IceModel(object):
         # Time step
         self.dt.assign(model_wrapper.dt)
 
-        #self.crevasse = LengthFormCrevasse(self)
+        self.crevasse = LengthFormCrevasse(self)
 
 
     # Step the model forward by one time step

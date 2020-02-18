@@ -1,5 +1,5 @@
 import numpy as np
-from dolfin import Constant, dx, FacetNormal
+from dolfin import Constant, dx, FacetNormal, conditional, lt
 from model.support.expressions import *
 
 ### Support Functions
@@ -93,7 +93,17 @@ class MomentumForm(object):
         # Water pressure
         P_w = rho_w*g*(l-Bhat)
         # A scaling function that reduces tau_b to 0 where ice is floating
-        tau_b_scale = Constant(1.0) - logistic(Bhat - B, k = 0.06, y0 = 80.)
+        #tau_b_scale = Constant(1.0) - logistic(Bhat - B, k = 0.005, y0 = 250.)
+        tau_b_scale = logistic(Bhat - B, k = .001, y0 = 100.)
+        #tau_b_scale = conditional(lt(Bhat - B, 1.), Constant(0.), Constant(1.))
+        # Lateral drag scale
+        tau_xy_scale = model.model_wrapper.input_functions['tau_xy_scale']
+        # Backstress scale
+        backstress_scale = model.model_wrapper.input_functions['backstress_scale']
+        # traction parameter scale
+        beta2_scale = model.model_wrapper.input_functions['beta2_scale']
+        
+        
         self.tau_b_scale = tau_b_scale
         #self.thing = logistic(Bhat - B, )
         
@@ -144,15 +154,15 @@ class MomentumForm(object):
         vi = VerticalIntegrator(points,weights)
 
         ### Basal Shear stress (linear case)
-        tau_b = tau_b_scale*beta2*N*u(1)
+        tau_b = beta2*N*u(1)
 
         ### Lateral drag function
-        tau_xy = 2 * H_c * b / width * ((n+2)/(width))**(1./n)*(ubar**2+0.01)**((1./n - 1)/2.)*ubar
+        tau_xy = tau_xy_scale * 2 * H_c * b / width * ((n+2)/(width))**(1./n)*(ubar**2+0.01)**((1./n - 1)/2.)*ubar
 
         # Residual of the first order equation
         R_momentum = (- vi.intz(membrane_xx) - vi.intz(shear_xz) - phi(1)*tau_b - vi.intz(tau_dx) - phibar*tau_xy)*L*dx
 
         # The hydrostatic boundary condition at the terminus
-        R_momentum += Constant(0.5)*(P_0*H_c - P_w*(l-Bhat) )*nhat[0]*phibar*ds1(1)
+        R_momentum += backstress_scale * Constant(0.5)*(P_0*H_c - P_w*(l-Bhat) )*nhat[0]*phibar*ds1(1)
 
         self.R_momentum = R_momentum
