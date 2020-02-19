@@ -48,17 +48,11 @@ class LengthForm(object):
         grounded = logistic(Bhat - B, k = .01, y0 = 50.)**2
         self.grounded = grounded 
         # Stretching rate
-        R_xx = Constant(5e-18**(-1./3.))*abs(ubar.dx(0) / L + Constant(1e-16))**(1./3.)
-        crevasse_depth = (-R_xx + rho*g*H_c - rho_w*g*D) / ((rho - rho_w)*g)*grounded
-
-        #self.crevasse_depth = crevasse_depth
-        self.crevasse_depth = max_value(Constant(min_thickness), crevasse_depth) + self.extra_calving
-
-
         R_xx = (abs((ubar.dx(0) / L) / Constant(A * spy)) + Constant(1e-20))**(1./3.)
+        # Water depth in crevasse
         d_w = Constant(150.)
-        self.crevasse_depth_new = (R_xx / Constant(rho * g)) + Constant(rho_w / rho) * d_w
-        self.crevasse_depth_new *= grounded
+        self.crevasse_depth = (R_xx / Constant(rho * g)) + Constant(rho_w / rho) * d_w
+        self.crevasse_depth *= grounded
         # Length form
         R_length = (H_c - self.crevasse_depth)*chi*ds1(1)
         self.R_length = R_length

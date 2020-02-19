@@ -5,8 +5,8 @@ from dolfin import MixedElement, FunctionSpace, FunctionAssigner, Function, \
 from model.ice_model.support.ice_params import *
 from model.ice_model.support.momentum_form_marine import *
 from model.ice_model.support.mass_form import *
-from model.ice_model.support.length_form_crevasse import LengthForm as LengthFormCrevasse
-from model.ice_model.support.length_form_crevasse import *
+from model.ice_model.support.length_form_calving_law import LengthForm as LengthFormCrevasse
+from model.ice_model.support.length_form_calving_law import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
 
@@ -31,7 +31,7 @@ class IceModel(object):
         self.t = self.ice_params['t0']
         # Fields that need to be loaded
         self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2',
-                       'backstress_scale', 'tau_xy_scale', 'beta2_scale']
+                       'backstress_scale', 'tau_xy_scale', 'beta2_scale', 'velocity']
         # Load model fields
         model_wrapper.load_fields(self.ice_params['fields'], self.fields)
         
@@ -158,8 +158,8 @@ class IceModel(object):
         rho = ice_constants['rho']
         rho_w = ice_constants['rho_w']
         # Ice base
-        #Bhat = max_value(B,-rho/rho_w*H_c)
-        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.05)
+        Bhat = max_value(B,-rho/rho_w*H_c)
+        #Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.01)
         #conditional(gt(x[0], 0.5), x[0]+x[1], Constant(0))
         #self.Bhat_sharp = softplus(B,-rho/rho_w*H_c,alpha=10000.)
         # Water depth
@@ -272,7 +272,7 @@ class IceModel(object):
             solver = NonlinearVariationalSolver(self.problem)
             solver.parameters.update(self.snes_params)
             solver.parameters['newton_solver']['error_on_nonconvergence'] = False
-            solver.parameters['newton_solver']['relaxation_parameter'] = 0.85
+            solver.parameters['newton_solver']['relaxation_parameter'] = 0.8
             solver.parameters['newton_solver']['report'] = True
             solver.solve()
 
