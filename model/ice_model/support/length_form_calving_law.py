@@ -50,9 +50,10 @@ class LengthForm(object):
         # Stretching rate
         R_xx = (abs((ubar.dx(0) / L) / Constant(A * spy)) + Constant(1e-20))**(1./3.)
         # Water depth in crevasse
-        d_w = Constant(150.)
-        self.crevasse_depth = (R_xx / Constant(rho * g)) + Constant(rho_w / rho) * d_w
-        self.crevasse_depth *= grounded
+        d_w = Constant(250.)
+        self.crevasse_depth = (R_xx / Constant(rho * g)) #+ Constant(rho_w / rho) * d_w
+        #self.crevasse_depth *= grounded
+        #self.crevasse_depth = Constant(500.)
         # Length form
-        R_length = (H_c - self.crevasse_depth)*chi*ds1(1)
+        R_length = (H_c - Constant(500.))*chi*ds1(1)
         self.R_length = R_length

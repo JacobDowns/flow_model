@@ -30,8 +30,7 @@ class IceModel(object):
         # Model time
         self.t = self.ice_params['t0']
         # Fields that need to be loaded
-        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2',
-                       'backstress_scale', 'tau_xy_scale', 'beta2_scale', 'velocity']
+        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2']
         # Load model fields
         model_wrapper.load_fields(self.ice_params['fields'], self.fields)
         
@@ -158,8 +157,8 @@ class IceModel(object):
         rho = ice_constants['rho']
         rho_w = ice_constants['rho_w']
         # Ice base
-        Bhat = max_value(B,-rho/rho_w*H_c)
-        #Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.01)
+        #Bhat = max_value(B,-rho/rho_w*H_c)
+        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.02)
         #conditional(gt(x[0], 0.5), x[0]+x[1], Constant(0))
         #self.Bhat_sharp = softplus(B,-rho/rho_w*H_c,alpha=10000.)
         # Water depth
