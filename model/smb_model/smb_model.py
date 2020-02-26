@@ -30,7 +30,6 @@ class SMBModel(object):
         # Fields that need to be loaded
         self.fields = ['P' + str(i) for i in range(12)]
         self.fields += ['T' + str(i) for i in range(12)]
-        self.fields += ['extra_melt']
         # Load model fields
         model_wrapper.load_fields(self.smb_params['fields'], self.fields)
 
@@ -137,7 +136,5 @@ class SMBModel(object):
         ablation = total_pdds * lambda_ice
         # Total yearly mass balance in m.i.e. assuming snowpack turns to ice at end of year
         smb = (accumulation - ablation) * (10./9.)
-        # Extra melt to prevent ice from flowing out of the domain
-        extra_melt = self.model_wrapper.input_functions['extra_melt'].vector().get_local()
 
-        self.model_wrapper.ice_model.adot.vector()[:] = smb #+ extra_melt
+        self.model_wrapper.ice_model.adot.vector()[:] = smb

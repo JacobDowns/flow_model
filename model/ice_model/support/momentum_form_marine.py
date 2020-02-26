@@ -93,11 +93,8 @@ class MomentumForm(object):
         # Water pressure
         P_w = rho_w*g*(l-Bhat)
         # A scaling function that reduces tau_b to 0 where ice is floating
-        #tau_b_scale = Constant(1.0) - logistic(Bhat - B, k = 0.005, y0 = 250.)
-        tau_b_scale = Constant(1.) - logistic(Bhat - B, k = .025, y0 = 200.)
-        
+        tau_b_scale = Constant(1.) - logistic(Bhat - B, k = .05, y0 = 100.)
         self.tau_b_scale = tau_b_scale
-        #self.thing = logistic(Bhat - B, )
         
         # Sigma-coordinate jacobian terms
         def dsdx(s):
@@ -130,7 +127,7 @@ class MomentumForm(object):
         
         # Longitudinal stress
         def membrane_xx(s):
-            return 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(4*(u.dx(s,0) + u.ds(s)*dsdx(s))) + 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(2*u(s)/width*width.dx(0))
+            return 1./L**2*(phi.dx(s,0) + phi.ds(s)*dsdx(s))*H_c*eta_v(s)*(4*(u.dx(s,0) + u.ds(s)*dsdx(s)))
 
         # Vertical shear stress
         def shear_xz(s):
@@ -145,12 +142,8 @@ class MomentumForm(object):
         weights = np.array([0.4876/2.,0.4317,0.2768,0.0476])
         vi = VerticalIntegrator(points,weights)
 
-        ### Basal Shear stress (linear case)
-        tau_b = beta2*N*(abs(u(1)) + Constant(1e-10))
-
-        ### Lateral drag function
-        tau_xy = 2 * H_c * b / width * ((n+2)/(width))**(1./n)*(ubar**2+Constant(0.01))**((1./n - 1)/2.)*ubar
-        #tau_xy = (Constant(2.*b) * (H_c / width)) * df.sqrt( (((5.*ubar / width) + Constant(1e-5)))**2 )**(1./3.)
+        # Basal Shear stress (linear case)
+        tau_b = tau_b_scale*beta2*N*u(1)
         
         # Residual of the first order equation
         R_momentum = (- vi.intz(membrane_xx) - vi.intz(shear_xz) - phi(1)*tau_b - vi.intz(tau_dx))*L*dx

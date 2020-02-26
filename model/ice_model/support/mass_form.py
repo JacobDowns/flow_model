@@ -34,17 +34,14 @@ class MassForm(object):
         # Flux velocity
         q_vel = ubar - v
         # Flux
-        q_flux = q_vel*H*width
+        q_flux = q_vel*H
         # Inter element flux (upwind)
-        uH = avg(q_vel)*avg(H*width) + 0.5*Abs(avg(width*q_vel))*jump(H)
-        # Time partial of width
-        dwdt = dLdt*x_spatial[0]/L*width.dx(0)
+        uH = avg(q_vel)*avg(H) + 0.5*Abs(avg(q_vel))*jump(H)
 
 
         ### Mass balance residual
         ########################################################################
-        R_mass = (L*width*dHdt*xsi + L*H*dwdt*xsi + H*width*dLdt*xsi - L*width*adot*xsi)*dx
+        R_mass = (L*dHdt*xsi + H*dLdt*xsi - L**adot*xsi)*dx
         R_mass += uH*jump(xsi)*dS
         R_mass += (q_vel / sqrt(q_vel**2 + Constant(1e-10))) * q_flux*xsi*ds1(1)
-
         self.R_mass = R_mass
