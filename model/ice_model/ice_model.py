@@ -125,11 +125,14 @@ class IceModel(object):
         adot = Function(V_cg)
         # Ice stream width
         width = Function(V_cg)
-
+        # Width dg
+        
         self.B = B
         self.beta2 = beta2
         self.adot = adot
         self.width = width
+        self.width_dg = Function(V_dg)
+        
         # Facet function marking divide and margin boundaries
         self.boundaries = model_wrapper.boundaries
         # Boundary measure
@@ -307,4 +310,5 @@ class IceModel(object):
         self.S0_c.assign(project(self.Bhat + self.H0_c, self.V_cg))
         # Update model width
         self.width.assign(self.model_wrapper.input_functions['width'])
-   
+        #self.width_dg.assign(
+        self.width_dg.interpolate(self.width)

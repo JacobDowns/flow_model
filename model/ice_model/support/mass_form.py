@@ -26,7 +26,7 @@ class MassForm(object):
         # SMB
         adot = model.adot
         # Ice stream width
-        width = model.width
+        width = model.width / Constant(1000.)
         # Spatial coordinate
         x_spatial = SpatialCoordinate(model.mesh)
         # Grid velocity
