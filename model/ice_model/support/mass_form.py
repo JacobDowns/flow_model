@@ -40,11 +40,11 @@ class MassForm(object):
         # Time partial of width
         dwdt = dLdt*x_spatial[0]/L*width.dx(0)
 
-
+        
         ### Mass balance residual
         ########################################################################
         R_mass = (L*width*dHdt*xsi + L*H*dwdt*xsi + H*width*dLdt*xsi - L*width*adot*xsi)*dx
         R_mass += uH*jump(xsi)*dS
         R_mass += (q_vel / sqrt(q_vel**2 + Constant(1e-10))) * q_flux*xsi*ds1(1)
-
+        
         self.R_mass = R_mass

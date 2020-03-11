@@ -22,4 +22,5 @@ class SMBModel(object):
     Update the model SMB function.
     """
     def update(self, params):
+        #print(params)
         self.model_wrapper.ice_model.adot.vector()[:] = self.adot.vector().get_local()

@@ -43,16 +43,17 @@ class LengthForm(object):
         # Boundary measure
         ds1 = ds(subdomain_data = model.boundaries)
         # Boundary calving (to prevent ice from flowing out of the domain)
-        self.extra_calving = model.model_wrapper.input_functions['extra_calving']
+        extra_calving = model.model_wrapper.input_functions['extra_calving']
         # Crevasse depth
         grounded = logistic(Bhat - B, k = .01, y0 = 50.)**2
         self.grounded = grounded 
         # Stretching rate
         R_xx = (abs((ubar.dx(0) / L) / Constant(A * spy)) + Constant(1e-20))**(1./3.)
         # Water depth in crevasse
-        d_w = Constant(150.)
+        d_w = Constant(250.)
         self.crevasse_depth = (R_xx / Constant(rho * g)) + Constant(rho_w / rho) * d_w
         self.crevasse_depth *= grounded
+        self.crevasse_depth += extra_calving
         # Length form
         R_length = (H_c - self.crevasse_depth)*chi*ds1(1)
         self.R_length = R_length

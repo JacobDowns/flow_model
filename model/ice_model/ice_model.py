@@ -6,7 +6,7 @@ from model.ice_model.support.ice_params import *
 from model.ice_model.support.momentum_form_marine import *
 from model.ice_model.support.mass_form import *
 from model.ice_model.support.length_form_calving_law import LengthForm as LengthFormCrevasse
-from model.ice_model.support.length_form_calving_law import *
+from model.ice_model.support.length_form_fixed import * #calving_law import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
 
@@ -161,8 +161,8 @@ class IceModel(object):
         rho = ice_constants['rho']
         rho_w = ice_constants['rho_w']
         # Ice base
-        Bhat = max_value(B,-rho/rho_w*H_c)
-        #Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.01)
+        #Bhat = max_value(B,-rho/rho_w*H_c)
+        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.02)
         #conditional(gt(x[0], 0.5), x[0]+x[1], Constant(0))
         #self.Bhat_sharp = softplus(B,-rho/rho_w*H_c,alpha=10000.)
         # Water depth
