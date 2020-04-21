@@ -158,7 +158,8 @@ class IceModel(object):
         rho_w = ice_constants['rho_w']
         # Ice base
         #Bhat = max_value(B,-rho/rho_w*H_c)
-        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.1)        
+        #Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.1)
+        Bhat = softplus(B,-rho/rho_w*H_c,alpha=0.02)
         # Water depth
         D = max_value(-(Bhat - sea_level), Constant(0.))
         # Greater of bedrock elevation or water surface
@@ -264,7 +265,7 @@ class IceModel(object):
             solver.parameters.update(self.snes_params)
             solver.solve()
         except:
-            self.assigner.assign(self.U, [self.zero_guess, self.zero_guess, self.H0_c, self.H0, self.L0])
+            self.assigner.assign(self.U, [self.un, self.u2n, self.H0_c, self.H0, self.L0])
             solver = NonlinearVariationalSolver(self.problem)
             solver.parameters.update(self.snes_params)
             solver.parameters['newton_solver']['error_on_nonconvergence'] = False
