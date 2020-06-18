@@ -5,9 +5,9 @@ smb_params = CustomDict()
 # PDD model variance 
 smb_params['pdd_var'] = 5.5
 # Ablation rate for snow (m / (degree C * day))
-smb_params['lambda_snow'] = 0.005
+smb_params['lambda_snow'] = 0.007#0.005
 # Ablation rate for ice (m / (degree C * day))
-smb_params['lambda_ice'] = 0.008
+smb_params['lambda_ice'] = 0.01#0.008
 # Precipitation scaling parameter
 smb_params['lambda_precip'] = 0.07
 # Superimposed ice fraction
@@ -18,3 +18,5 @@ smb_params['lapse_rate'] = 5.
 smb_params['monthly_dts'] = np.zeros(12)
 # Monthly precip. anomalies (m.w.e. / a)
 smb_params['monthly_dps'] = np.zeros(12)
+# Submarine melt rate (m.i.e. / a)
+smb_params['submarine_melt_rate'] = -400.

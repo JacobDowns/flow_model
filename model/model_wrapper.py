@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import copy
 from model.ice_model.ice_model import IceModel
 from model.hydro_model.hydro_model import HydroModel
-from model.smb_model.basic_smb_model import SMBModel
+from model.smb_model.basic_smb_model import SMBModel as BasicSMBModel
+from model.smb_model.smb_model import SMBModel
 
 set_log_level(40)
 
@@ -95,9 +96,13 @@ class ModelWrapper(object):
         hydro_params = {}
         if 'smb_params' in inputs:
             smb_params = inputs['smb_params']
-    
-        self.smb_model = SMBModel(self, smb_params)
 
+        self.smb_model = BasicSMBModel(self, smb_params)
+        if 'smb_model' in smb_params:
+            if smb_params['smb_model'] == 'pdd':
+                self.smb_model = SMBModel(self, smb_params)
+                
+                
 
         ### Make sure everything is initialized
         ########################################################

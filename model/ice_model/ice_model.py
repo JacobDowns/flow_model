@@ -6,7 +6,7 @@ from model.ice_model.support.ice_params import *
 from model.ice_model.support.momentum_form_marine import *
 from model.ice_model.support.mass_form import *
 from model.ice_model.support.length_form_calving_law import LengthForm as LengthFormCrevasse
-from model.ice_model.support.length_form_fixed import * #calving_law import *
+from model.ice_model.support.length_form_calving_law import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
 
@@ -30,7 +30,7 @@ class IceModel(object):
         # Model time
         self.t = self.ice_params['t0']
         # Fields that need to be loaded
-        self.fields = ['B', 'H', 'S_ref', 'width', 'extra_calving', 'beta2',
+        self.fields = ['B', 'H', 'S_ref', 'width', 'width1', 'extra_calving', 'beta2',
                        'backstress_scale', 'tau_xy_scale', 'beta2_scale', 'velocity']
         # Load model fields
         model_wrapper.load_fields(self.ice_params['fields'], self.fields)
@@ -178,6 +178,8 @@ class IceModel(object):
         dHdt = (H - H0) / dt
         # Effective pressure
         N = Function(self.V_cg)
+        # grounded indicator
+        self.grounded = logistic(Bhat - B, k = .3, y0 = 60.)*100.
         # CG ice thickness at last time step
         self.S0_c = Function(self.V_cg)
 

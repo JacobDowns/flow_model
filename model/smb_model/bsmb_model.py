@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 
 """
 Positive degree day model. Computes a surface mass balance function adot. 
+Additionally, adds submarine melt on the floating portion of the ice. Hence
+
 """
 
 class SMBModel(object):
@@ -48,6 +50,7 @@ class SMBModel(object):
 
         
         self.smb_params.update(params)
+        #self.model_wrapper.update_interp_fields(self.fields, float(self.model_wrapper.model.L0))
 
         # Monthly temperature anomalies (C)
         monthly_dts = self.smb_params['monthly_dts']
@@ -63,6 +66,11 @@ class SMBModel(object):
         lambda_precip = self.smb_params['lambda_precip']
         # Superimposed ice fraction
         super_ice_frac = self.smb_params['super_ice_frac']
+        # Submarine melt rate (m.i.e. / a)
+        submarine_melt_rate = self.smb_params['submarine_melt_rate']
+        submarine_melt_scale = self.model_wrapper.input_functions['submarine_melt_scale'].vector().get_local()[0]
+        submarine_melt_rate *= submarine_melt_scale
+        #print(submarine_melt_rate)
 
         
         ### Compute monthly PDD's and precip.
@@ -137,11 +145,8 @@ class SMBModel(object):
         # Total yearly mass balance in m.i.e. assuming snowpack turns to ice at end of year
         smb = (accumulation - ablation) * (10./9.)
 
-
-        ### Compute submarine melt
-        submarine_melt_rate = self.smb_params['submarine_melt_rate']
-        submarine_melt_scale = self.model_wrapper.input_functions['submarine_melt_scale'].vector().get_local()[0]
-        submarine_melt_rate *= submarine_melt_scale
+        ### Compute SMB from total snowfall and pdds
+        ########################################################################
         B = self.model_wrapper.ice_model.B.vector().get_local()
         Bhat = project(self.model_wrapper.ice_model.Bhat).vector().get_local()
         submarine_melt_rate = ((Bhat - B) > 25.)*submarine_melt_rate

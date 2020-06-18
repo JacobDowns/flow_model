@@ -98,8 +98,6 @@ class MomentumForm(object):
         #tau_b_scale = conditional(lt(Bhat - B, 1.), Constant(1.), Constant(0.))
         # Lateral drag scale
         tau_xy_scale = model.model_wrapper.input_functions['tau_xy_scale']
-        # Backstress scale
-        backstress_scale = model.model_wrapper.input_functions['backstress_scale']
         # traction parameter scale
         beta2_scale = model.model_wrapper.input_functions['beta2_scale']
         
@@ -154,7 +152,7 @@ class MomentumForm(object):
         vi = VerticalIntegrator(points,weights)
 
         ### Basal Shear stress (linear case)
-        tau_b = tau_b_scale*beta2*N*(abs(u(1)) + Constant(1e-10))
+        tau_b = beta2_scale*tau_b_scale*beta2*N*(abs(u(1)) + Constant(1e-10))
 
         ### Lateral drag function
         tau_xy = tau_xy_scale * 2 * H_c * b / width * ((n+2)/(width))**(1./n)*(ubar**2+Constant(0.01))**((1./n - 1)/2.)*ubar
@@ -163,6 +161,6 @@ class MomentumForm(object):
         R_momentum = (- vi.intz(membrane_xx) - vi.intz(shear_xz) - phi(1)*tau_b - vi.intz(tau_dx) - phibar*tau_xy)*L*dx
 
         # The hydrostatic boundary condition at the terminus
-        R_momentum += backstress_scale * Constant(0.5)*(P_0*H_c - P_w*(l-Bhat) )*nhat[0]*phibar*ds1(1)
+        R_momentum += Constant(0.5)*(P_0*H_c - P_w*(l-Bhat))*nhat[0]*phibar*ds1(1)
 
         self.R_momentum = R_momentum
