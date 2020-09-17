@@ -35,22 +35,23 @@ class MomentumForm(object):
 
         ### Ice model fields and constants
         ###############################################################
+
+        physical_constants = model.model_wrapper.model_params['physical_constants']
+        momentum_params = model.model_wrapper.model_params['momentum_params']
         
         # Load physical constants
-        n = model.ice_constants['n']
-        rho = model.ice_constants['rho']
-        rho_w = model.ice_constants['rho_w']
-        g = model.ice_constants['g']
-        A_s = model.ice_constants['A_s']
-        mu = model.ice_constants['mu']
-        b = Constant(model.ice_constants['b'])
-        m = model.ice_constants['m']
+        n = momentum_params['n']
+        rho = physical_constants['rho']
+        rho_w = physical_constants['rho_w']
+        g = physical_constants['g']
+        b = Constant(momentum_params['b'])
         eps_reg = Constant(1e-5)
 
+        
         # Thickness
         H = model.H
-        # Bedrock elevation
-        B = model.B
+        # Ice base
+        B = model.Bhat
         # Basal traction
         beta2 = model.beta2
         # Surface

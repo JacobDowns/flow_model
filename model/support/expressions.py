@@ -1,7 +1,6 @@
 import dolfin as df
 from ufl import max_value, min_value
 
-
 def softplus(y1,y2,alpha=1):
     """ 
     The softplus function is a differentiable approximation to the ramp 

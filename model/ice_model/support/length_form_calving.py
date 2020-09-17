@@ -1,6 +1,7 @@
 import numpy as np
 from dolfin import *
-from ...support.expressions import softplus
+#from ...support.expressions import softplus
+from model.support.expressions import Abs, logistic
 
 class LengthForm(object):
     """
@@ -12,28 +13,23 @@ class LengthForm(object):
 
         # CG thickness
         H_c = model.H_c
-        # Water depth
-        D = model.D
+        # Ice base
+        Bhat = model.Bhat
+        # Bed
+        B = model.B
         # Density of ice
         rho = model.ice_constants['rho']
         # Density of water
         rho_w = model.ice_constants['rho_w']
         # Min. thickness
-        min_thickness = model.ice_constants['min_thickness']
-        # Calving parameter
-        q = model.ice_constants['q']
-        # Calving thickness
-        #H_calving = softplus(Constant((rho_w/rho)*(1. + q))*D,
-        #                     min_thickness, alpha = 0.1)
         H_calving = Constant(20.)
         self.H_calving = H_calving
         # Real test function
         chi = model.chi
         # Boundary measure
         ds1 = model.ds1
-        # Length residual
 
-        
-        
+        H_calving = logistic(Bhat - B, k = .01, y0 = 50.)**2 * Constant(250.)
+                
         R_length = (H_c - H_calving)*chi*ds1(1)
         self.R_length = R_length

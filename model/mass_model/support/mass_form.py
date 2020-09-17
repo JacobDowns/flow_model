@@ -10,11 +10,11 @@ class MassForm(object):
     def __init__(self, model):
 
         # DG thickness
-        H = model.H_dg
+        H = model.H
         # Rate of change of H
         dHdt = model.dHdt
         # Velocity
-        ubar = model.ubar
+        u = model.model_wrapper.momentum_model.ubar
         # DG test function
         xsi = model.xsi
         # SMB
@@ -22,14 +22,13 @@ class MassForm(object):
         # Ice stream width
         width = model.model_wrapper.input_functions['width']
         # Flux
-        q_flux = q_vel*H*width
+        q = u*H*width
         # Inter element flux (upwind)
-        uH = avg(ubar)*avg(H*width) + 0.5*Abs(avg(width*ubar))*jump(H)
+        uH = avg(u)*avg(H*width) + 0.5*Abs(avg(width*u))*jump(H)
 
         
         ### Mass balance residual
         ########################################################################
-        R_mass = (width*dHdt*xsi + L*H*dwdt*xsi + H*width*dLdt*xsi - L*width*adot*xsi)*dx
+        R_mass = (width*dHdt*xsi - adot*width*xsi)*dx
         R_mass += uH*jump(xsi)*dS
-        
         self.R_mass = R_mass

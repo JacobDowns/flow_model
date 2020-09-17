@@ -1,9 +1,8 @@
 from dolfin import MixedElement, FunctionSpace, FunctionAssigner, Function, \
     TrialFunction, TestFunction, split, Constant, NonlinearVariationalProblem, \
     ds, parameters, derivative, project, NonlinearVariationalSolver, assemble, \
-    DirichletBC, SubDomain, near
-from model.ice_model.support.ice_params import *
-from model.ice_model.support.momentum_form import *
+    DirichletBC, SubDomain, near, solve
+from model.momentum_model.support.momentum_form import *
 from model.support.expressions import *
 import matplotlib.pyplot as plt
 
@@ -12,7 +11,7 @@ parameters["form_compiler"]["representation"] = "uflacs"
 parameters['form_compiler']['quadrature_degree'] = 4
 parameters['allow_extrapolation'] = True
 
-class IceModel(object):
+class MomentumModel(object):
 
     def __init__(self, model_wrapper, params = {}):
 
@@ -20,10 +19,6 @@ class IceModel(object):
         self.model_wrapper = model_wrapper
         # Mesh
         self.mesh = model_wrapper.mesh
-        # Physical constants / parameters
-        self.ice_params = ice_params
-        self.ice_params.update(params)        
-        self.ice_constants = self.ice_params['ice_constants']
         # Fields that need to be loaded
         self.fields = ['B', 'H', 'width', 'beta2']
         # Load model fields
@@ -96,12 +91,15 @@ class IceModel(object):
         # Ice stream width
         width = Function(V_cg)
         width.assign(model_wrapper.input_functions['width'])
-
+        # Ice base
+        Bhat = softplus(B,-9.17*H, alpha=0.1)
+        
         self.H = H
         self.B = B
         self.beta2 = beta2
         self.width = width
-        self.S = B + H
+        self.S = Bhat + H
+        self.Bhat = Bhat
 
 
         ### Function initialization
@@ -110,35 +108,23 @@ class IceModel(object):
         # Initialize guesses for unknowns
         self.assigner.assign(U, [self.zero_guess, self.zero_guess])
 
-
-        ### Effective pressure for hydro model
-        ########################################################################
-
         # Effective pressure
-        N = Function(self.V_cg)
+        N = Function(V_cg)
         self.N = N
-
-
-        ### SMB for SMB model
-        ########################################################################
         
-        # SMB
-        adot = Function(V_cg)
-        self.adot = adot
-
 
         ### Variational forms
         ########################################################################
 
         # Momentum balance residual
         momentum_form = MomentumForm(self)
-        self.momentum_form = momentum_form
         R_momentum = momentum_form.R_momentum
-        self.R_momentum = R_momentum
-
         # Total residual
         R = R_momentum
+        # Derivative
         J = derivative(R, U, dU)
+        self.R = R
+        self.J = J
 
 
         ### Problem setup
@@ -167,42 +153,28 @@ class IceModel(object):
         
         bcl = DirichletBC(V.sub(0), Constant(0.), left_boundary)
         bcr = DirichletBC(V.sub(0), Constant(0.), right_boundary)
-
-        # Variational problem
-        self.problem = NonlinearVariationalProblem(R, U, bcs=[bcl, bcr],\
-                        J=J, form_compiler_parameters = ffc_options)
-
-        solver = NonlinearVariationalSolver(self.problem)
-        solver.parameters.update(self.snes_params)
-        self.solver = solver
-        self.solve()
+        self.bcs = [bcl, bcr]
 
 
     # Step the model forward by one time step
     def solve(self):
-        
-        ### Solve
-        ####################################################################
-        #try:
-        self.assigner.assign(self.U, [self.ubar0, self.udef0])
-        solver = NonlinearVariationalSolver(self.problem)
-        solver.parameters.update(self.snes_params)
-        solver.solve()
 
-        """
-        except:
-        self.assigner.assign(self.U, [self.zero_guess, self.zero_guess])
-        solver = NonlinearVariationalSolver(self.problem)
-        solver.parameters.update(self.snes_params)
-        solver.parameters['newton_solver']['error_on_nonconvergence'] = False
-        solver.parameters['newton_solver']['relaxation_parameter'] = 0.8
-        solver.parameters['newton_solver']['report'] = True
-        solver.solve()
-        """
+        ### Update basal traction on floating parts of domain
+        ##############################################################
+
+        beta2_vec = self.beta2.vector().get_local()
+        D = project(self.Bhat - self.B, self.V_cg).vector().get_local()
+        phi_vec = np.ones_like(D)
+        phi_vec[D > 1.] = 1e-12
+        beta2_vec *= phi_vec
+        self.beta2.vector().set_local(beta2_vec)
+
+
+        ### Solve for velocity
+        ##############################################################
         
+        self.assigner.assign(self.U, [self.zero_guess, self.zero_guess])
+        # Solve
+        solve(self.R == 0, self.U, self.bcs, solver_parameters = self.snes_params)
         # Update previous solutions
         self.assigner_inv.assign([self.ubar0, self.udef0], self.U)
-        
-
-    def update(self, params):
-        return None

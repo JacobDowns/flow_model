@@ -159,6 +159,16 @@ class IceModel(object):
                        'report' : True
                        }}
 
+        """
+        class LeftDirichletBoundary(SubDomain):
+            def inside(self, x, on_boundary):
+                return near(x[0], 0.) and on_boundary
+
+        class RightDirichletBoundary(SubDomain):
+            def inside(self, x, on_boundary):
+                return near(x[0],  model_wrapper.x.max()) and on_boundary
+        """
+
         def left_boundary(x):
             return x[0] < 1e-10
 
@@ -167,6 +177,10 @@ class IceModel(object):
         
         bcl = DirichletBC(V.sub(0), Constant(0.), left_boundary)
         bcr = DirichletBC(V.sub(0), Constant(0.), right_boundary)
+
+        #f = Function(V)
+        #print(bcr.apply(f.vector()))
+        #quit()
 
         # Variational problem
         self.problem = NonlinearVariationalProblem(R, U, bcs=[bcl, bcr],\
