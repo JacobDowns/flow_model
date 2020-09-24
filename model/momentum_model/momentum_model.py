@@ -92,7 +92,15 @@ class MomentumModel(object):
         width = Function(V_cg)
         width.assign(model_wrapper.input_functions['width'])
         # Ice base
-        Bhat = softplus(B,-9.17*H, alpha=0.1)
+        Bhat = Function(V_cg)
+        # Floating indicator
+        floating = Function(V_cg)
+        # Ocean depth
+        depth = Function(V_cg)
+        # Effective pressure
+        N = Function(V_cg)
+        # Terminus (for applying hydrostatic bc)
+        terminus = Function(V_cg)
         
         self.H = H
         self.B = B
@@ -100,18 +108,18 @@ class MomentumModel(object):
         self.width = width
         self.S = Bhat + H
         self.Bhat = Bhat
+        self.floating = floating
+        self.depth = depth
+        self.N = N
+        self.terminus = terminus
 
-
+        
         ### Function initialization
         ########################################################################
 
         # Initialize guesses for unknowns
         self.assigner.assign(U, [self.zero_guess, self.zero_guess])
 
-        # Effective pressure
-        N = Function(V_cg)
-        self.N = N
-        
 
         ### Variational forms
         ########################################################################
@@ -156,19 +164,40 @@ class MomentumModel(object):
         self.bcs = [bcl, bcr]
 
 
-    # Step the model forward by one time step
-    def solve(self):
+    def update(self):
+
+        ### Update ice base
+        ##############################################################
+        
+        B = self.B.vector().get_local()
+        H = self.H.vector().get_local()
+        Bhat = np.maximum(B,-(917./1029.)*H)
+        self.Bhat.vector().set_local(Bhat)
 
         ### Update basal traction on floating parts of domain
         ##############################################################
 
-        beta2_vec = self.beta2.vector().get_local()
-        D = project(self.Bhat - self.B, self.V_cg).vector().get_local()
-        phi_vec = np.ones_like(D)
-        phi_vec[D > 1.] = 1e-12
-        beta2_vec *= phi_vec
-        self.beta2.vector().set_local(beta2_vec)
+        depth = Bhat - B
+        self.depth.vector().set_local(depth)
+        floating = np.ones_like(depth)
+        floating[depth > 1.] = 1e-12
+        self.floating.vector().set_local(floating)
 
+
+        ### Hydrostatic boundary condition at terminus
+        ##############################################################
+        
+        min_thickness = self.model_wrapper.model_params['mass_params']['min_thickness']
+        index = np.where(H == min_thickness)[0].max()
+        terminus_vec = np.zeros_like(H)
+        terminus_vec[index] = 1.
+        self.terminus.vector().set_local(terminus_vec)
+
+        
+    # Step the model forward by one time step
+    def solve(self):
+         
+        self.update()
 
         ### Solve for velocity
         ##############################################################

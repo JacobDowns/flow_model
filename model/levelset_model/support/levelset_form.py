@@ -1,9 +1,10 @@
-from dolfin import dx, Constant, sqrt
+from dolfin import dx, Constant, lhs, rhs
 from model.support.expressions import Abs
 import ufl as ufl
 import numpy as np
 
 class LevelsetForm(object):
+    
     """
     Set up the variational form for the mass balance equation.
     """
@@ -27,5 +28,7 @@ class LevelsetForm(object):
         
         ### Mass balance residual
         ########################################################################
-        R_levelset = dphi_dt*v*dx + u*v*dx - adot*v*dx
+        R_levelset = dphi_dt*v*dx + u*v*dx + adot*v*dx
+        self.a_levelset = lhs(R_levelset)
+        self.L_levelset = rhs(R_levelset)
         self.R_levelset = R_levelset

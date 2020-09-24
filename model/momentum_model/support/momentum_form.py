@@ -68,6 +68,8 @@ class MomentumForm(object):
         # Test functions
         phibar = model.phibar
         phidef = model.phidef
+        # Floating indicator
+        floating = model.floating
 
 
         ### Vertical basis
@@ -121,9 +123,11 @@ class MomentumForm(object):
         tau_xy = 2.*H*b/width*((n+2)/(width))**(1./n)\
             *(ubar**2 + Constant(0.01))**((1./n - 1)/2.)*ubar
 
-        tau_b = beta2*N*(abs(u(1)) + Constant(1e-10))
+        tau_b = floating*beta2*N*(abs(u(1)) + Constant(1e-10))
 
         R_momentum = (-vi.intz(tau_xx) - vi.intz(tau_xz) - phi(1)*tau_b\
                       - vi.intz(tau_d) - phibar*tau_xy)*dx
+
+        R_momentum += Constant(0.5)*(P_0*H - P_w*D)*phibar*dx
 
         self.R_momentum = R_momentum

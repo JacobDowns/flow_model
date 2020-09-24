@@ -46,6 +46,7 @@ mass_params = CustomDict()
 
 # Minimum thickness (m)
 mass_params['min_thickness'] = 10.0
+mass_params['sigma_max'] = 100e3
 
 model_params['mass_params'] = mass_params
 
@@ -59,14 +60,3 @@ hydro_params = CustomDict()
 hydro_params['P_frac'] = 0.85
 
 model_params['hydro_params'] = hydro_params
-
-
-### Levelset model parameters
-######################################################################
-
-levelset_params = CustomDict()
-
-# Overburden pressure fraction
-levelset_params['sigma_max'] = 100e3
-
-model_params['levelset_params'] = levelset_params
