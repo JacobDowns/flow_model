@@ -19,10 +19,6 @@ class MomentumModel(object):
         self.model_wrapper = model_wrapper
         # Mesh
         self.mesh = model_wrapper.mesh
-        # Fields that need to be loaded
-        self.fields = ['B', 'H', 'width', 'beta2']
-        # Load model fields
-        model_wrapper.load_fields(self.fields)
         
 
         #### Function spaces
@@ -75,51 +71,38 @@ class MomentumModel(object):
         self.ubar0 = Function(V_cg)
         self.udef0 = Function(V_cg)
 
+        # Initialize guesses for unknowns
+        self.assigner.assign(U, [self.zero_guess, self.zero_guess])
 
+        
         ### Input functions
         ########################################################################
 
         # Bed elevation
-        B = Function(V_cg)
-        B.assign(model_wrapper.input_functions['B'])
+        self.B = model_wrapper.cg_funcs['B']
         # Thickness
-        H = Function(V_cg)
-        H.assign(model_wrapper.input_functions['H'])
+        self.H = model_wrapper.cg_funcs['H']
         # Basal traction
-        beta2 = Function(V_cg)
-        beta2.assign(model_wrapper.input_functions['beta2'])
+        self.beta2 = model_wrapper.cg_funcs['beta2']
         # Ice stream width
-        width = Function(V_cg)
-        width.assign(model_wrapper.input_functions['width'])
+        self.width = model_wrapper.cg_funcs['width']
         # Ice base
-        Bhat = Function(V_cg)
+        self.Bhat = model_wrapper.cg_funcs['Bhat']
         # Floating indicator
-        floating = Function(V_cg)
+        self.floating = model_wrapper.cg_funcs['floating']
         # Ocean depth
-        depth = Function(V_cg)
+        self.depth = model_wrapper.cg_funcs['depth']
         # Effective pressure
-        N = Function(V_cg)
-        # Terminus (for applying hydrostatic bc)
-        terminus = Function(V_cg)
+        self.N = model_wrapper.cg_funcs['N']
+        # Water pressure
+        self.P_w = model_wrapper.cg_funcs['P_w']
+        # Overburden pressure
+        self.P_0 = model_wrapper.cg_funcs['P_0']
+        # Surface
+        self.S = self.Bhat + self.H
+        # Terminus marker measure
+        self.ds_t = model_wrapper.ds_t
         
-        self.H = H
-        self.B = B
-        self.beta2 = beta2
-        self.width = width
-        self.S = Bhat + H
-        self.Bhat = Bhat
-        self.floating = floating
-        self.depth = depth
-        self.N = N
-        self.terminus = terminus
-
-        
-        ### Function initialization
-        ########################################################################
-
-        # Initialize guesses for unknowns
-        self.assigner.assign(U, [self.zero_guess, self.zero_guess])
-
 
         ### Variational forms
         ########################################################################
@@ -162,42 +145,10 @@ class MomentumModel(object):
         bcl = DirichletBC(V.sub(0), Constant(0.), left_boundary)
         bcr = DirichletBC(V.sub(0), Constant(0.), right_boundary)
         self.bcs = [bcl, bcr]
-
-
-    def update(self):
-
-        ### Update ice base
-        ##############################################################
         
-        B = self.B.vector().get_local()
-        H = self.H.vector().get_local()
-        Bhat = np.maximum(B,-(917./1029.)*H)
-        self.Bhat.vector().set_local(Bhat)
-
-        ### Update basal traction on floating parts of domain
-        ##############################################################
-
-        depth = Bhat - B
-        self.depth.vector().set_local(depth)
-        floating = np.ones_like(depth)
-        floating[depth > 1.] = 1e-12
-        self.floating.vector().set_local(floating)
-
-
-        ### Hydrostatic boundary condition at terminus
-        ##############################################################
-        
-        min_thickness = self.model_wrapper.model_params['mass_params']['min_thickness']
-        index = np.where(H == min_thickness)[0].max()
-        terminus_vec = np.zeros_like(H)
-        terminus_vec[index] = 1.
-        self.terminus.vector().set_local(terminus_vec)
-
         
     # Step the model forward by one time step
     def solve(self):
-         
-        self.update()
 
         ### Solve for velocity
         ##############################################################
@@ -207,3 +158,6 @@ class MomentumModel(object):
         solve(self.R == 0, self.U, self.bcs, solver_parameters = self.snes_params)
         # Update previous solutions
         self.assigner_inv.assign([self.ubar0, self.udef0], self.U)
+        # Update the model wrapper
+        self.model_wrapper.cg_funcs['u'].assign(self.ubar0)
+        

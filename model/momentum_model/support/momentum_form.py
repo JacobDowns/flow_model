@@ -46,12 +46,13 @@ class MomentumForm(object):
         g = physical_constants['g']
         b = Constant(momentum_params['b'])
         eps_reg = Constant(1e-5)
-
         
         # Thickness
         H = model.H
         # Ice base
-        B = model.Bhat
+        Bhat = model.Bhat
+        # Bed
+        B = model.B
         # Basal traction
         beta2 = model.beta2
         # Surface
@@ -70,6 +71,10 @@ class MomentumForm(object):
         phidef = model.phidef
         # Floating indicator
         floating = model.floating
+        # Water depth
+        depth = model.depth
+        # Terminus measure
+        ds_t = model.ds_t
 
 
         ### Vertical basis
@@ -128,6 +133,6 @@ class MomentumForm(object):
         R_momentum = (-vi.intz(tau_xx) - vi.intz(tau_xz) - phi(1)*tau_b\
                       - vi.intz(tau_d) - phibar*tau_xy)*dx
 
-        R_momentum += Constant(0.5)*(P_0*H - P_w*D)*phibar*dx
-
+        R_momentum += (0.5*rho*g*H**2 + 0.5*rho_w*g*min_value(Constant(0.),-Bhat)**2)*phibar('+')*ds_t(1)
+ 
         self.R_momentum = R_momentum

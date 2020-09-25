@@ -22,6 +22,12 @@ physical_constants['g'] = 9.81
 
 model_params['physical_constants'] = physical_constants
 
+# Lists of CG and DG model fields
+model_params['cg_fields'] = ['B', 'H', 'width', 'beta2', 'adot', 'depth',
+                             'N', 'P_0', 'P_w', 'Bhat', 'floating',
+                             'u', 'c']
+model_params['dg_fields'] = ['H', 'phi', 'H0']
+
 
 ### Momentum model parameters
 ######################################################################

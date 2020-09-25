@@ -28,7 +28,7 @@ class MassForm(object):
         # SMB
         adot = model.adot
         # Ice stream width
-        width = model.model_wrapper.input_functions['width']
+        width = model.width
         # Inter element flux (upwind)
         uH = avg(u)*avg(H*width) + 0.5*Abs(avg(width*u))*jump(H)
         uphi = avg(u)*avg(phi*width) + 0.5*Abs(avg(width*u))*jump(phi)

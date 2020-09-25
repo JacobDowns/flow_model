@@ -15,65 +15,42 @@ class MassModel(object):
 
         # Model inputs object
         self.model_wrapper = model_wrapper
-        # Fields that need to be loaded
-        self.fields = ['adot']
-        # Load model fields
-        model_wrapper.load_fields(self.fields)
+        self.constants = model_wrapper.model_params['physical_constants']
 
         
         ### Initialize functions
         ########################################################################
 
         # DG thickness
-        H = Function(model_wrapper.V_dg)
+        self.H = model_wrapper.dg_funcs['H']
         # Levelset function
-        phi = Function(model_wrapper.V_dg)
+        self.phi = model_wrapper.dg_funcs['phi']
         # Thickness at last time step
-        H0 = Function(model_wrapper.V_dg)
-        H.assign(project(model_wrapper.momentum_model.H, model_wrapper.V_dg))
-        H0.assign(H)
-        # Trial function 
-        dH = TrialFunction(model_wrapper.V_dg)
-        # Levelset trial function
-        dphi = TrialFunction(model_wrapper.V_dg)
+        self.H0 = model_wrapper.dg_funcs['H0']
         # Width
-        width = model_wrapper.input_functions['width']
-        # Velocity
-        u = model_wrapper.momentum_model.ubar
-        # Time step
-        dt = Constant(1.)
-        # Time derivative
-        dHdt = (dH - H0) / dt
-        # Levelset time derivative
-        dphidt = (dphi - H0) / dt
+        self.width = model_wrapper.cg_funcs['width']
         # SMB
-        adot = Function(model_wrapper.V_cg)
-        adot.assign(model_wrapper.input_functions['adot'])
-        # Velocity
-        u = model_wrapper.momentum_model.ubar
+        self.adot =  model_wrapper.cg_funcs['adot']
+        # Depth averaged velocity
+        self.u = model_wrapper.cg_funcs['u']
         # Calving
-        c = Function(model_wrapper.V_cg)
-        
-        self.u = u
-        self.adot = adot 
-        self.H = H
-        self.phi = phi
-        self.H0 = H0
-        self.dt = dt
-        self.dHdt = dHdt
-        self.dphi = dphi
-        self.dphidt = dphidt
-        self.c = c
-        
+        self.c = model_wrapper.cg_funcs['c']
+        # Trial function 
+        self.dH = TrialFunction(model_wrapper.V_dg)
+        # Levelset trial function
+        self.dphi = TrialFunction(model_wrapper.V_dg)
+        # Time step
+        self.dt = Constant(1.)
+        # Time derivative
+        self.dHdt = (self.dH - self.H0) / self.dt
+        # Levelset time derivative
+        self.dphidt = (self.dphi - self.H0) / self.dt
+        # Test funciton
+        self.xsi = TestFunction(model_wrapper.V_dg)
+
         
         ### Variational forms
         ########################################################################
-
-        # Test function
-        xsi = TestFunction(model_wrapper.V_dg)
-
-        self.xsi = xsi
-        self.dH = dH
         
         # Mass residual
         mass_form = MassForm(self)
@@ -98,7 +75,7 @@ class MassModel(object):
         c = np.absolute(u)*(sigma / sigma_max)
         floating = self.model_wrapper.momentum_model.floating.vector().get_local()
         c *= floating
-        self.c.vector().set_local(c*0. + 0.*75.)
+        self.c.vector().set_local(c*0. + 45.)
         
         
     # Step the model forward by one time step
@@ -110,3 +87,5 @@ class MassModel(object):
         solve(self.a_level == self.L_level, self.phi, [])
         
         self.H0.assign(self.H)
+
+    
