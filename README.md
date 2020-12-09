@@ -1,6 +1,6 @@
 # flow_model
 
-Code for the ice dynamics and PDD models used for all model runs in [[1]](#1). The ice dynamics model is based on the stress balance model presented in [[2]](#2) It is implemented in Python3 using the FEniCS package for the parallel solution of partial differential equations. 
+Code for the ice dynamics and PDD models used for all model runs in [[1]](#1). The ice dynamics model is based on the stress balance model presented in [[2]](#2) It is implemented in Python3 using the  [FEniCS](https://fenicsproject.org/)  package for the parallel solution of partial differential equations. 
 
 ## References
 <a id="1">[1]</a> 
